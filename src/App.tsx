@@ -54,7 +54,8 @@ import {
   ExternalLink,
   Code2,
   Database,
-  Trash2
+  Trash2,
+  Globe
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -101,9 +102,7 @@ const PRODUCT_BRAND = 'VEP';
 const PRODUCT_FULL_NAME = 'Virtual Employee Persona';
 
 const SUPPORTED_LANGUAGES =[
-  'English', 'Dutch', 'Flemish Dutch', 'French', 'German', 'Spanish',
-  'Italian', 'Portuguese', 'Japanese', 'Korean', 'Mandarin Chinese',
-  'Tagalog', 'Cebuano', 'Arabic', 'Hindi', 'Russian'
+  'Afrikaans', 'Albanian', 'Amharic', 'Arabic', 'Armenian', 'Assamese', 'Aymara', 'Azerbaijani', 'Bambara', 'Basque', 'Belarusian', 'Bengali', 'Bhojpuri', 'Bikol', 'Bosnian', 'Bulgarian', 'Catalan', 'Cebuano', 'Chichewa', 'Chinese (Simplified)', 'Chinese (Traditional)', 'Corsican', 'Croatian', 'Czech', 'Danish', 'Dhivehi', 'Dogri', 'Dutch', 'English', 'Esperanto', 'Estonian', 'Ewe', 'Filipino', 'Finnish', 'French', 'Frisian', 'Galician', 'Georgian', 'German', 'Greek', 'Guarani', 'Gujarati', 'Haitian Creole', 'Hausa', 'Hawaiian', 'Hebrew', 'Hiligaynon', 'Hindi', 'Hmong', 'Hungarian', 'Icelandic', 'Igbo', 'Ilocano', 'Indonesian', 'Irish', 'Italian', 'Japanese', 'Javanese', 'Kannada', 'Kapampangan', 'Kazakh', 'Khmer', 'Kinyarwanda', 'Konkani', 'Korean', 'Krio', 'Kurdish (Kurmanji)', 'Kurdish (Sorani)', 'Kyrgyz', 'Lao', 'Latin', 'Latvian', 'Lingala', 'Lithuanian', 'Luganda', 'Luxembourgish', 'Macedonian', 'Maithili', 'Malagasy', 'Malay', 'Malayalam', 'Maltese', 'Maori', 'Marathi', 'Meiteilon (Manipuri)', 'Mizo', 'Mongolian', 'Myanmar (Burmese)', 'Nepali', 'Norwegian', 'Odia (Oriya)', 'Oromo', 'Pangasinan', 'Pashto', 'Persian', 'Polish', 'Portuguese', 'Punjabi', 'Quechua', 'Romanian', 'Russian', 'Samoan', 'Sanskrit', 'Scots Gaelic', 'Sepedi', 'Serbian', 'Sesotho', 'Shona', 'Sindhi', 'Sinhala', 'Slovak', 'Slovenian', 'Somali', 'Spanish', 'Sundanese', 'Swahili', 'Swedish', 'Tajik', 'Tamil', 'Tatar', 'Telugu', 'Thai', 'Tigrinya', 'Tsonga', 'Turkish', 'Turkmen', 'Twi', 'Ukrainian', 'Urdu', 'Uyghur', 'Uzbek', 'Vietnamese', 'Waray', 'Welsh', 'Xhosa', 'Yiddish', 'Yoruba', 'Zulu'
 ];
 
 const GEMINI_LIVE_VOICE_OPTIONS =[
@@ -228,7 +227,7 @@ const GOOGLE_SERVICE_TOOLS =[
         origin: { type: Type.STRING, description: 'Starting location.' },
         destination: { type: Type.STRING, description: 'Target destination.' }
       },
-      required: ['origin', 'destination']
+      required:['origin', 'destination']
     }
   },
   {
@@ -240,7 +239,7 @@ const GOOGLE_SERVICE_TOOLS =[
         location_latitude: { type: Type.NUMBER },
         location_longitude: { type: Type.NUMBER }
       },
-      required: ['location_latitude', 'location_longitude']
+      required:['location_latitude', 'location_longitude']
     }
   },
   {
@@ -273,7 +272,7 @@ const GOOGLE_SERVICE_TOOLS =[
         taxRate: { type: Type.NUMBER, description: 'Tax percentage, e.g. 5 for 5%.' },
         emailTo: { type: Type.STRING }
       },
-      required: ['clientName', 'items']
+      required:['clientName', 'items']
     }
   },
   {
@@ -370,7 +369,7 @@ const GOOGLE_SERVICE_TOOLS =[
         cc: { type: Type.STRING, description: 'Optional CC recipients.' },
         bcc: { type: Type.STRING, description: 'Optional BCC recipients.' },
       },
-      required: ['to', 'subject', 'body'],
+      required:['to', 'subject', 'body'],
     },
   },
   {
@@ -1461,7 +1460,8 @@ export default function App() {
   const[authBusy, setAuthBusy] = useState(false);
   const [authMessage, setAuthMessage] = useState<{ type: 'error' | 'success' | 'info'; text: string } | null>(null);
   const[showAuthPassword, setShowAuthPassword] = useState(false);
-  const [showAuthConfirmPassword, setShowAuthConfirmPassword] = useState(false);
+  const[showAuthConfirmPassword, setShowAuthConfirmPassword] = useState(false);
+  const [authLanguage, setAuthLanguage] = useState(() => localStorage.getItem('preferredLanguage') || 'English');
 
   useEffect(() => {
     const fontId = 'beatrice-roboto-font';
@@ -1485,11 +1485,13 @@ export default function App() {
           const providerIds = u.providerData.map(provider => provider.providerId);
           const authProvider = providerIds.includes('google.com') ? 'google' : 'email';
           const hasGoogleServices = authProvider === 'google' && Boolean(localStorage.getItem('googleAccessToken'));
+          const prefLang = localStorage.getItem('preferredLanguage') || 'English';
 
           if (!userSnap.exists()) {
             const initialSettings = { 
               ...DEFAULT_SETTINGS, 
-              userName: u.displayName || DEFAULT_SETTINGS.userName 
+              userName: u.displayName || DEFAULT_SETTINGS.userName,
+              selectedLanguage: prefLang
             };
             
             await set(userRef, { 
@@ -1527,6 +1529,11 @@ export default function App() {
     
     return () => unsub();
   },[]);
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setAuthLanguage(e.target.value);
+    localStorage.setItem('preferredLanguage', e.target.value);
+  };
 
   const getAuthErrorMessage = (error: any) => {
     const code = String(error?.code || '');
@@ -1688,6 +1695,19 @@ export default function App() {
                   />
                 </label> 
               )}
+
+              <label className="flex h-14 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 focus-within:border-lime-300/40">
+                <Globe className="h-4 w-4 shrink-0 text-zinc-500" />
+                <select
+                  value={authLanguage}
+                  onChange={handleLanguageChange}
+                  className="min-w-0 flex-1 bg-transparent text-sm font-medium text-white outline-none appearance-none"
+                >
+                  {SUPPORTED_LANGUAGES.map(lang => (
+                    <option key={lang} value={lang} className="bg-[#0A0A0B] text-white">{lang}</option>
+                  ))}
+                </select>
+              </label>
               
               <label className="flex h-14 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 focus-within:border-lime-300/40">
                 <Mail className="h-4 w-4 shrink-0 text-zinc-500" />
@@ -1830,21 +1850,21 @@ function BeatriceAgent({
   const [isActive, setIsActive] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const[isAgentSpeaking, setIsAgentSpeaking] = useState(false);
-  const [micLevel, setMicLevel] = useState(0);
+  const[micLevel, setMicLevel] = useState(0);
   const[micBands, setMicBands] = useState<number[]>(Array(20).fill(0));
   const[speakerLevel, setSpeakerLevel] = useState(0);
   const [speakerBands, setSpeakerBands] = useState<number[]>(Array(20).fill(0));
   const [tasks, setTasks] = useState<ActionTask[]>([]);
   const[historyContext, setHistoryContext] = useState<string>('');
   const[historyMsgs, setHistoryMsgs] = useState<ChatMessage[]>([]);
-  const [currentTranscript, setCurrentTranscript] = useState<{ role: 'user' | 'model'; text: string } | null>(null);
+  const[currentTranscript, setCurrentTranscript] = useState<{ role: 'user' | 'model'; text: string } | null>(null);
 
   const[isMuted, setIsMuted] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(false);
+  const[isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [showSidebar, setShowSidebar] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [showMeetingRecorder, setShowMeetingRecorder] = useState(false);
+  const[showMeetingRecorder, setShowMeetingRecorder] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [settings, setSettings] = useState<AgentSettings>({ ...DEFAULT_SETTINGS, ...initialSettings });
 
@@ -1857,6 +1877,7 @@ function BeatriceAgent({
   const transcriptTimeoutRef = useRef<any>(null);
   const isMutedRef = useRef(false);
   const isActiveRef = useRef(false);
+  const connectingRef = useRef(false);
   const micAnimationFrameRef = useRef<number | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -1925,8 +1946,6 @@ function BeatriceAgent({
     if (apiKey) {
       aiRef.current = new GoogleGenAI({ apiKey });
     }
-    
-    audioStreamerRef.current = new AudioStreamer();
     
     return () => { 
       unsub(); 
@@ -2668,19 +2687,23 @@ function BeatriceAgent({
   };
 
   const startSession = async () => {
+    if (isActiveRef.current || connectingRef.current) return;
+    
     if (!aiRef.current) { 
       alert('Gemini API key is missing. Add VITE_GEMINI_API_KEY.'); 
       return; 
     }
     
-    setConnecting(true); 
+    setConnecting(true);
+    connectingRef.current = true;
     modelTranscriptBufferRef.current = ''; 
     userTranscriptBufferRef.current = '';
 
     try {
-      if (audioStreamerRef.current) {
-        await audioStreamerRef.current.init(24000);
+      if (!audioStreamerRef.current) {
+        audioStreamerRef.current = new AudioStreamer();
       }
+      await audioStreamerRef.current.init(24000);
 
       const hasGoogleServiceAccess = Boolean(localStorage.getItem('googleAccessToken'));
       
@@ -2689,7 +2712,7 @@ function BeatriceAgent({
         BIBLE_PERSONALITY || '',
         `You MUST follow the above BIBLE rules absolutely every time. Never deviate.`,
         `=== END BIBLE ===`,
-        BASE_LIVE_AGENT_PROMPT,
+        BASE_LIVE_AGENT_PROMPT || '',
         historyContext,
         `Current physical location context: Baguio, Philippines. Use this if the user asks for weather, places, directions, etc., without specifying a city.`,
         `Product brand: VEP, which means Virtual Employee Persona. Default persona: Beatrice, Boss Jo Lernout's secretary.`,
@@ -2707,14 +2730,14 @@ function BeatriceAgent({
         `=== TOOL EXECUTION & CONFIRMATION RULES ===`,
         `You MUST NEVER call tools automatically for external actions without confirming first. Tools may only be used when the user explicitly asks for an external action.`,
         `Before executing any tool, you must ask the user for confirmation in plain human language. Say exactly what you are about to do and ask for a 'Yes' or 'No'.`,
-        `Speak normally like a calm office aide. Do not pretend to work, search, save, email, or find anything unless a real tool call completed successfully. Do not use exaggerated mock working monologues.`,
         `Do not query tools unless clearly requested.`,
         
         `=== TRUTHFULNESS RULES ===`,
         `Never invent files, links, emails, calendar events, search results, document contents, or completed actions. If a tool was not used, answer only from conversation context. If a tool fails, report the actual failure briefly.`,
         
-        `=== LANGUAGE RULE ===`,
-        `Your primary speaking language is ${settings.selectedLanguage}. Always respond in ${settings.selectedLanguage} unless the user explicitly switches languages.`
+        `=== LANGUAGE & TONE RULES ===`,
+        `Your primary speaking language is ${settings.selectedLanguage}. Always respond in ${settings.selectedLanguage} unless the user explicitly switches languages. You are natively fluent in ${settings.selectedLanguage}.`,
+        `CRITICAL: You MUST sound exactly like a normal, natural human being. Use natural conversational pacing, occasional filler words (like "um", "ah", "let's see"), and human-like intonation. Never sound robotic, artificial, or like a typical AI assistant.`
       ].filter(Boolean).join('\n\n');
 
       const session = await aiRef.current.live.connect({
@@ -2816,6 +2839,10 @@ function BeatriceAgent({
 
       sessionRef.current = session;
 
+      if (audioRecorderRef.current) {
+        audioRecorderRef.current.stop();
+      }
+
       audioRecorderRef.current = new AudioRecorder((base64) => { 
         if (isMutedRef.current) return; 
         sendAudioToLive(base64); 
@@ -2825,7 +2852,8 @@ function BeatriceAgent({
 
       setIsActive(true); 
       isActiveRef.current = true; 
-      setConnecting(false); 
+      setConnecting(false);
+      connectingRef.current = false;
       startMicVisualizer();
       
       setTimeout(() => { 
@@ -2835,6 +2863,7 @@ function BeatriceAgent({
     } catch (err) { 
       console.error('Session start failed:', err); 
       setConnecting(false); 
+      connectingRef.current = false;
       stopSession(); 
     }
   };
@@ -2855,7 +2884,7 @@ function BeatriceAgent({
         setIsVideoEnabled(true);
         
         setTimeout(() => { 
-          sendTextToLive(`${settings.userName} just opened the camera. Notice it in a normal human way. Oh, yeah, I see it now. Briefly describe only what is actually visible.`); 
+          sendTextToLive(`[SYSTEM: User just opened the camera. Acknowledge this normally and briefly describe what is visible.]`); 
         }, 300);
         
         videoIntervalRef.current = setInterval(() => {
@@ -2893,7 +2922,7 @@ function BeatriceAgent({
       setIsVideoEnabled(false);
       
       setTimeout(() => { 
-        sendTextToLive(`${settings.userName} closed the camera. Acknowledge it normally and keep the conversation going.`); 
+        sendTextToLive(`[SYSTEM: User closed the camera.]`); 
       }, 150);
     }
   };
@@ -2912,7 +2941,7 @@ function BeatriceAgent({
         const base64Data = c.toDataURL('image/jpeg', 0.8).split(',')[1];
         
         if (base64Data) { 
-          sendTextToLive(`${settings.userName} captured this photo. Look at it and respond normally, briefly, and clearly.`); 
+          sendTextToLive(`[SYSTEM: User captured a photo. Look at it and respond normally, briefly, and clearly.]`); 
           sendVideoToLive(base64Data); 
           saveMessage('user', '[Sent Photo]'); 
         }
@@ -2941,7 +2970,7 @@ function BeatriceAgent({
           videoRef.current.play().catch(e => console.error('Video play err', e)); 
         }
         
-        sendTextToLive(`${settings.userName} switched the camera. Notice the new view normally and describe only what stands out.`);
+        sendTextToLive(`[SYSTEM: User switched camera facing mode to ${newMode}.]`);
       } catch (e) { 
         console.error('Camera switch error:', e); 
       }
@@ -3043,7 +3072,6 @@ function BeatriceAgent({
   };
 
   const stopSession = () => {
-    try { recognitionRef.current?.stop(); } catch (e) {} 
     try { audioRecorderRef.current?.stop(); } catch (e) {} 
     try { audioStreamerRef.current?.stop(); } catch (e) {} 
     try { sessionRef.current?.close(); } catch (e) {}
@@ -3061,7 +3089,6 @@ function BeatriceAgent({
     }
     
     sessionRef.current = null; 
-    recognitionRef.current = null; 
     modelTranscriptBufferRef.current = ''; 
     userTranscriptBufferRef.current = ''; 
     isActiveRef.current = false;
@@ -3070,6 +3097,7 @@ function BeatriceAgent({
     setIsVideoEnabled(false); 
     setIsActive(false); 
     setConnecting(false); 
+    connectingRef.current = false;
     setIsAgentSpeaking(false); 
     setCurrentTranscript(null);
   };
@@ -3103,7 +3131,7 @@ Tasks:
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
-                tools: [{ functionDeclarations: GOOGLE_SERVICE_TOOLS }],
+                tools:[{ functionDeclarations: GOOGLE_SERVICE_TOOLS }],
                 systemInstruction: "You are Beatrice, an executive assistant. Execute tools precisely as requested to support your boss."
             }
         });
