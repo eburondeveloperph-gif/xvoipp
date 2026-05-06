@@ -92,6 +92,17 @@ interface AgentSettings {
   avatarUrl: string;
   selectedVoice: string;
   knowledgeBase: string;
+  selectedLanguage: string;
+}
+
+interface KnowledgeBaseDocument {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  text: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 const LIVE_MODEL = 'gemini-3.1-flash-live-preview';
@@ -131,6 +142,268 @@ const GEMINI_LIVE_VOICE_OPTIONS =[
   { alias: 'Martian Manhunter', id: 'Sadaltager', vibe: 'deep, calm, observant' },
   { alias: 'Silver Surfer', id: 'Sulafat', vibe: 'smooth, distant, reflective' },
 ];
+
+
+const SUPPORTED_LANGUAGE_OPTIONS = [
+  { id: 'nl-BE', label: 'Dutch Flemish', nativeLabel: 'Vlaams Nederlands' },
+  { id: 'ab', label: 'Abkhaz', nativeLabel: 'Abkhaz' },
+  { id: 'ace', label: 'Acehnese', nativeLabel: 'Acehnese' },
+  { id: 'ach', label: 'Acholi', nativeLabel: 'Acholi' },
+  { id: 'aa', label: 'Afar', nativeLabel: 'Afar' },
+  { id: 'af', label: 'Afrikaans', nativeLabel: 'Afrikaans' },
+  { id: 'sq', label: 'Albanian', nativeLabel: 'Albanian' },
+  { id: 'alz', label: 'Alur', nativeLabel: 'Alur' },
+  { id: 'am', label: 'Amharic', nativeLabel: 'Amharic' },
+  { id: 'ar', label: 'Arabic', nativeLabel: 'Arabic' },
+  { id: 'hy', label: 'Armenian', nativeLabel: 'Armenian' },
+  { id: 'as', label: 'Assamese', nativeLabel: 'Assamese' },
+  { id: 'av', label: 'Avar', nativeLabel: 'Avar' },
+  { id: 'awa', label: 'Awadhi', nativeLabel: 'Awadhi' },
+  { id: 'ay', label: 'Aymara', nativeLabel: 'Aymara' },
+  { id: 'az', label: 'Azerbaijani', nativeLabel: 'Azerbaijani' },
+  { id: 'ban', label: 'Balinese', nativeLabel: 'Balinese' },
+  { id: 'bal', label: 'Baluchi', nativeLabel: 'Baluchi' },
+  { id: 'bm', label: 'Bambara', nativeLabel: 'Bambara' },
+  { id: 'bci', label: 'Baoulé', nativeLabel: 'Baoulé' },
+  { id: 'ba', label: 'Bashkir', nativeLabel: 'Bashkir' },
+  { id: 'eu', label: 'Basque', nativeLabel: 'Basque' },
+  { id: 'btx', label: 'Batak Karo', nativeLabel: 'Batak Karo' },
+  { id: 'bts', label: 'Batak Simalungun', nativeLabel: 'Batak Simalungun' },
+  { id: 'bbc', label: 'Batak Toba', nativeLabel: 'Batak Toba' },
+  { id: 'be', label: 'Belarusian', nativeLabel: 'Belarusian' },
+  { id: 'bem', label: 'Bemba', nativeLabel: 'Bemba' },
+  { id: 'bn', label: 'Bengali', nativeLabel: 'Bengali' },
+  { id: 'bew', label: 'Betawi', nativeLabel: 'Betawi' },
+  { id: 'bho', label: 'Bhojpuri', nativeLabel: 'Bhojpuri' },
+  { id: 'bik', label: 'Bikol', nativeLabel: 'Bikol' },
+  { id: 'bs', label: 'Bosnian', nativeLabel: 'Bosnian' },
+  { id: 'br', label: 'Breton', nativeLabel: 'Breton' },
+  { id: 'bg', label: 'Bulgarian', nativeLabel: 'Bulgarian' },
+  { id: 'bua', label: 'Buryat', nativeLabel: 'Buryat' },
+  { id: 'yue', label: 'Cantonese', nativeLabel: 'Cantonese' },
+  { id: 'ca', label: 'Catalan', nativeLabel: 'Catalan' },
+  { id: 'ceb', label: 'Cebuano', nativeLabel: 'Cebuano' },
+  { id: 'ch', label: 'Chamorro', nativeLabel: 'Chamorro' },
+  { id: 'ce', label: 'Chechen', nativeLabel: 'Chechen' },
+  { id: 'ny', label: 'Chichewa', nativeLabel: 'Chichewa' },
+  { id: 'zh-CN', label: 'Chinese (Simplified)', nativeLabel: 'Chinese (Simplified)' },
+  { id: 'zh-TW', label: 'Chinese (Traditional)', nativeLabel: 'Chinese (Traditional)' },
+  { id: 'chk', label: 'Chuukese', nativeLabel: 'Chuukese' },
+  { id: 'cv', label: 'Chuvash', nativeLabel: 'Chuvash' },
+  { id: 'co', label: 'Corsican', nativeLabel: 'Corsican' },
+  { id: 'crh-Cyrl', label: 'Crimean Tatar (Cyrillic)', nativeLabel: 'Crimean Tatar (Cyrillic)' },
+  { id: 'crh-Latn', label: 'Crimean Tatar (Latin)', nativeLabel: 'Crimean Tatar (Latin)' },
+  { id: 'hr', label: 'Croatian', nativeLabel: 'Croatian' },
+  { id: 'cs', label: 'Czech', nativeLabel: 'Czech' },
+  { id: 'da', label: 'Danish', nativeLabel: 'Danish' },
+  { id: 'prs', label: 'Dari', nativeLabel: 'Dari' },
+  { id: 'dv', label: 'Dhivehi', nativeLabel: 'Dhivehi' },
+  { id: 'din', label: 'Dinka', nativeLabel: 'Dinka' },
+  { id: 'doi', label: 'Dogri', nativeLabel: 'Dogri' },
+  { id: 'dov', label: 'Dombe', nativeLabel: 'Dombe' },
+  { id: 'nl', label: 'Dutch', nativeLabel: 'Nederlands' },
+  { id: 'dyu', label: 'Dyula', nativeLabel: 'Dyula' },
+  { id: 'dz', label: 'Dzongkha', nativeLabel: 'Dzongkha' },
+  { id: 'en', label: 'English', nativeLabel: 'English' },
+  { id: 'eo', label: 'Esperanto', nativeLabel: 'Esperanto' },
+  { id: 'et', label: 'Estonian', nativeLabel: 'Estonian' },
+  { id: 'ee', label: 'Ewe', nativeLabel: 'Ewe' },
+  { id: 'fo', label: 'Faroese', nativeLabel: 'Faroese' },
+  { id: 'fj', label: 'Fijian', nativeLabel: 'Fijian' },
+  { id: 'fil', label: 'Filipino', nativeLabel: 'Filipino' },
+  { id: 'fi', label: 'Finnish', nativeLabel: 'Finnish' },
+  { id: 'fon', label: 'Fon', nativeLabel: 'Fon' },
+  { id: 'fr', label: 'French', nativeLabel: 'Français' },
+  { id: 'fr-CA', label: 'French (Canada)', nativeLabel: 'Français (Canada)' },
+  { id: 'fy', label: 'Frisian', nativeLabel: 'Frisian' },
+  { id: 'fur', label: 'Friulian', nativeLabel: 'Friulian' },
+  { id: 'ff', label: 'Fulani', nativeLabel: 'Fulani' },
+  { id: 'gaa', label: 'Ga', nativeLabel: 'Ga' },
+  { id: 'gl', label: 'Galician', nativeLabel: 'Galician' },
+  { id: 'ka', label: 'Georgian', nativeLabel: 'Georgian' },
+  { id: 'de', label: 'German', nativeLabel: 'Deutsch' },
+  { id: 'el', label: 'Greek', nativeLabel: 'Greek' },
+  { id: 'gn', label: 'Guarani', nativeLabel: 'Guarani' },
+  { id: 'gu', label: 'Gujarati', nativeLabel: 'Gujarati' },
+  { id: 'ht', label: 'Haitian Creole', nativeLabel: 'Haitian Creole' },
+  { id: 'cnh', label: 'Hakha Chin', nativeLabel: 'Hakha Chin' },
+  { id: 'ha', label: 'Hausa', nativeLabel: 'Hausa' },
+  { id: 'haw', label: 'Hawaiian', nativeLabel: 'Hawaiian' },
+  { id: 'he', label: 'Hebrew', nativeLabel: 'Hebrew' },
+  { id: 'hil', label: 'Hiligaynon', nativeLabel: 'Hiligaynon' },
+  { id: 'hi', label: 'Hindi', nativeLabel: 'Hindi' },
+  { id: 'hmn', label: 'Hmong', nativeLabel: 'Hmong' },
+  { id: 'hu', label: 'Hungarian', nativeLabel: 'Hungarian' },
+  { id: 'hrx', label: 'Hunsrik', nativeLabel: 'Hunsrik' },
+  { id: 'iba', label: 'Iban', nativeLabel: 'Iban' },
+  { id: 'is', label: 'Icelandic', nativeLabel: 'Icelandic' },
+  { id: 'ig', label: 'Igbo', nativeLabel: 'Igbo' },
+  { id: 'ilo', label: 'Ilocano', nativeLabel: 'Ilocano' },
+  { id: 'id', label: 'Indonesian', nativeLabel: 'Indonesian' },
+  { id: 'iu-Latn', label: 'Inuktut (Latin)', nativeLabel: 'Inuktut (Latin)' },
+  { id: 'iu-Cans', label: 'Inuktut (Syllabics)', nativeLabel: 'Inuktut (Syllabics)' },
+  { id: 'ga', label: 'Irish', nativeLabel: 'Irish' },
+  { id: 'it', label: 'Italian', nativeLabel: 'Italiano' },
+  { id: 'jam', label: 'Jamaican Patois', nativeLabel: 'Jamaican Patois' },
+  { id: 'ja', label: 'Japanese', nativeLabel: 'Japanese' },
+  { id: 'jv', label: 'Javanese', nativeLabel: 'Javanese' },
+  { id: 'kac', label: 'Jingpo', nativeLabel: 'Jingpo' },
+  { id: 'kl', label: 'Kalaallisut', nativeLabel: 'Kalaallisut' },
+  { id: 'kn', label: 'Kannada', nativeLabel: 'Kannada' },
+  { id: 'kr', label: 'Kanuri', nativeLabel: 'Kanuri' },
+  { id: 'pam', label: 'Kapampangan', nativeLabel: 'Kapampangan' },
+  { id: 'kk', label: 'Kazakh', nativeLabel: 'Kazakh' },
+  { id: 'kha', label: 'Khasi', nativeLabel: 'Khasi' },
+  { id: 'km', label: 'Khmer', nativeLabel: 'Khmer' },
+  { id: 'cgg', label: 'Kiga', nativeLabel: 'Kiga' },
+  { id: 'kg', label: 'Kikongo', nativeLabel: 'Kikongo' },
+  { id: 'rw', label: 'Kinyarwanda', nativeLabel: 'Kinyarwanda' },
+  { id: 'ktu', label: 'Kituba', nativeLabel: 'Kituba' },
+  { id: 'trp', label: 'Kokborok', nativeLabel: 'Kokborok' },
+  { id: 'kv', label: 'Komi', nativeLabel: 'Komi' },
+  { id: 'kok', label: 'Konkani', nativeLabel: 'Konkani' },
+  { id: 'ko', label: 'Korean', nativeLabel: 'Korean' },
+  { id: 'kri', label: 'Krio', nativeLabel: 'Krio' },
+  { id: 'ku', label: 'Kurdish (Kurmanji)', nativeLabel: 'Kurdish (Kurmanji)' },
+  { id: 'ckb', label: 'Kurdish (Sorani)', nativeLabel: 'Kurdish (Sorani)' },
+  { id: 'ky', label: 'Kyrgyz', nativeLabel: 'Kyrgyz' },
+  { id: 'lo', label: 'Lao', nativeLabel: 'Lao' },
+  { id: 'ltg', label: 'Latgalian', nativeLabel: 'Latgalian' },
+  { id: 'la', label: 'Latin', nativeLabel: 'Latin' },
+  { id: 'lv', label: 'Latvian', nativeLabel: 'Latvian' },
+  { id: 'lij', label: 'Ligurian', nativeLabel: 'Ligurian' },
+  { id: 'li', label: 'Limburgish', nativeLabel: 'Limburgish' },
+  { id: 'ln', label: 'Lingala', nativeLabel: 'Lingala' },
+  { id: 'lt', label: 'Lithuanian', nativeLabel: 'Lithuanian' },
+  { id: 'lmo', label: 'Lombard', nativeLabel: 'Lombard' },
+  { id: 'lg', label: 'Luganda', nativeLabel: 'Luganda' },
+  { id: 'luo', label: 'Luo', nativeLabel: 'Luo' },
+  { id: 'lb', label: 'Luxembourgish', nativeLabel: 'Luxembourgish' },
+  { id: 'mk', label: 'Macedonian', nativeLabel: 'Macedonian' },
+  { id: 'mad', label: 'Madurese', nativeLabel: 'Madurese' },
+  { id: 'mai', label: 'Maithili', nativeLabel: 'Maithili' },
+  { id: 'mak', label: 'Makassar', nativeLabel: 'Makassar' },
+  { id: 'mg', label: 'Malagasy', nativeLabel: 'Malagasy' },
+  { id: 'ms', label: 'Malay', nativeLabel: 'Malay' },
+  { id: 'ms-Arab', label: 'Malay (Jawi)', nativeLabel: 'Malay (Jawi)' },
+  { id: 'ml', label: 'Malayalam', nativeLabel: 'Malayalam' },
+  { id: 'mt', label: 'Maltese', nativeLabel: 'Maltese' },
+  { id: 'mam', label: 'Mam', nativeLabel: 'Mam' },
+  { id: 'gv', label: 'Manx', nativeLabel: 'Manx' },
+  { id: 'mi', label: 'Maori', nativeLabel: 'Maori' },
+  { id: 'mr', label: 'Marathi', nativeLabel: 'Marathi' },
+  { id: 'mh', label: 'Marshallese', nativeLabel: 'Marshallese' },
+  { id: 'mwr', label: 'Marwadi', nativeLabel: 'Marwadi' },
+  { id: 'mfe', label: 'Mauritian Creole', nativeLabel: 'Mauritian Creole' },
+  { id: 'chm', label: 'Meadow Mari', nativeLabel: 'Meadow Mari' },
+  { id: 'mni', label: 'Meiteilon (Manipuri)', nativeLabel: 'Meiteilon (Manipuri)' },
+  { id: 'min', label: 'Minang', nativeLabel: 'Minang' },
+  { id: 'lus', label: 'Mizo', nativeLabel: 'Mizo' },
+  { id: 'mn', label: 'Mongolian', nativeLabel: 'Mongolian' },
+  { id: 'my', label: 'Myanmar (Burmese)', nativeLabel: 'Myanmar (Burmese)' },
+  { id: 'nhe', label: 'Nahuatl (Eastern Huasteca)', nativeLabel: 'Nahuatl (Eastern Huasteca)' },
+  { id: 'ndc', label: 'Ndau', nativeLabel: 'Ndau' },
+  { id: 'nr', label: 'Ndebele (South)', nativeLabel: 'Ndebele (South)' },
+  { id: 'new', label: 'Nepalbhasa (Newari)', nativeLabel: 'Nepalbhasa (Newari)' },
+  { id: 'ne', label: 'Nepali', nativeLabel: 'Nepali' },
+  { id: 'nqo', label: 'NKo', nativeLabel: 'NKo' },
+  { id: 'no', label: 'Norwegian', nativeLabel: 'Norwegian' },
+  { id: 'nus', label: 'Nuer', nativeLabel: 'Nuer' },
+  { id: 'oc', label: 'Occitan', nativeLabel: 'Occitan' },
+  { id: 'or', label: 'Odia (Oriya)', nativeLabel: 'Odia (Oriya)' },
+  { id: 'om', label: 'Oromo', nativeLabel: 'Oromo' },
+  { id: 'os', label: 'Ossetian', nativeLabel: 'Ossetian' },
+  { id: 'pag', label: 'Pangasinan', nativeLabel: 'Pangasinan' },
+  { id: 'pap', label: 'Papiamento', nativeLabel: 'Papiamento' },
+  { id: 'ps', label: 'Pashto', nativeLabel: 'Pashto' },
+  { id: 'fa', label: 'Persian', nativeLabel: 'Persian' },
+  { id: 'pl', label: 'Polish', nativeLabel: 'Polish' },
+  { id: 'pt-BR', label: 'Portuguese (Brazil)', nativeLabel: 'Portuguese (Brazil)' },
+  { id: 'pt-PT', label: 'Portuguese (Portugal)', nativeLabel: 'Portuguese (Portugal)' },
+  { id: 'pa-Guru', label: 'Punjabi (Gurmukhi)', nativeLabel: 'Punjabi (Gurmukhi)' },
+  { id: 'pa-Arab', label: 'Punjabi (Shahmukhi)', nativeLabel: 'Punjabi (Shahmukhi)' },
+  { id: 'qu', label: 'Quechua', nativeLabel: 'Quechua' },
+  { id: 'kek', label: 'Qʼeqchiʼ', nativeLabel: 'Qʼeqchiʼ' },
+  { id: 'rom', label: 'Romani', nativeLabel: 'Romani' },
+  { id: 'ro', label: 'Romanian', nativeLabel: 'Romanian' },
+  { id: 'rn', label: 'Rundi', nativeLabel: 'Rundi' },
+  { id: 'ru', label: 'Russian', nativeLabel: 'Russian' },
+  { id: 'se', label: 'Sami (North)', nativeLabel: 'Sami (North)' },
+  { id: 'sm', label: 'Samoan', nativeLabel: 'Samoan' },
+  { id: 'sg', label: 'Sango', nativeLabel: 'Sango' },
+  { id: 'sa', label: 'Sanskrit', nativeLabel: 'Sanskrit' },
+  { id: 'sat-Latn', label: 'Santali (Latin)', nativeLabel: 'Santali (Latin)' },
+  { id: 'sat-Olck', label: 'Santali (Ol Chiki)', nativeLabel: 'Santali (Ol Chiki)' },
+  { id: 'gd', label: 'Scots Gaelic', nativeLabel: 'Scots Gaelic' },
+  { id: 'nso', label: 'Sepedi', nativeLabel: 'Sepedi' },
+  { id: 'sr', label: 'Serbian', nativeLabel: 'Serbian' },
+  { id: 'st', label: 'Sesotho', nativeLabel: 'Sesotho' },
+  { id: 'crs', label: 'Seychellois Creole', nativeLabel: 'Seychellois Creole' },
+  { id: 'shn', label: 'Shan', nativeLabel: 'Shan' },
+  { id: 'sn', label: 'Shona', nativeLabel: 'Shona' },
+  { id: 'scn', label: 'Sicilian', nativeLabel: 'Sicilian' },
+  { id: 'szl', label: 'Silesian', nativeLabel: 'Silesian' },
+  { id: 'sd', label: 'Sindhi', nativeLabel: 'Sindhi' },
+  { id: 'si', label: 'Sinhala', nativeLabel: 'Sinhala' },
+  { id: 'sk', label: 'Slovak', nativeLabel: 'Slovak' },
+  { id: 'sl', label: 'Slovenian', nativeLabel: 'Slovenian' },
+  { id: 'so', label: 'Somali', nativeLabel: 'Somali' },
+  { id: 'es', label: 'Spanish', nativeLabel: 'Spanish' },
+  { id: 'su', label: 'Sundanese', nativeLabel: 'Sundanese' },
+  { id: 'sus', label: 'Susu', nativeLabel: 'Susu' },
+  { id: 'sw', label: 'Swahili', nativeLabel: 'Swahili' },
+  { id: 'ss', label: 'Swati', nativeLabel: 'Swati' },
+  { id: 'sv', label: 'Swedish', nativeLabel: 'Swedish' },
+  { id: 'ty', label: 'Tahitian', nativeLabel: 'Tahitian' },
+  { id: 'tg', label: 'Tajik', nativeLabel: 'Tajik' },
+  { id: 'ber', label: 'Tamazight', nativeLabel: 'Tamazight' },
+  { id: 'ber-Tfng', label: 'Tamazight (Tifinagh)', nativeLabel: 'Tamazight (Tifinagh)' },
+  { id: 'ta', label: 'Tamil', nativeLabel: 'Tamil' },
+  { id: 'tt', label: 'Tatar', nativeLabel: 'Tatar' },
+  { id: 'te', label: 'Telugu', nativeLabel: 'Telugu' },
+  { id: 'tet', label: 'Tetum', nativeLabel: 'Tetum' },
+  { id: 'th', label: 'Thai', nativeLabel: 'Thai' },
+  { id: 'bo', label: 'Tibetan', nativeLabel: 'Tibetan' },
+  { id: 'ti', label: 'Tigrinya', nativeLabel: 'Tigrinya' },
+  { id: 'tiv', label: 'Tiv', nativeLabel: 'Tiv' },
+  { id: 'tpi', label: 'Tok Pisin', nativeLabel: 'Tok Pisin' },
+  { id: 'to', label: 'Tongan', nativeLabel: 'Tongan' },
+  { id: 'lua', label: 'Tshiluba', nativeLabel: 'Tshiluba' },
+  { id: 'ts', label: 'Tsonga', nativeLabel: 'Tsonga' },
+  { id: 'tn', label: 'Tswana', nativeLabel: 'Tswana' },
+  { id: 'tcy', label: 'Tulu', nativeLabel: 'Tulu' },
+  { id: 'tum', label: 'Tumbuka', nativeLabel: 'Tumbuka' },
+  { id: 'tr', label: 'Turkish', nativeLabel: 'Turkish' },
+  { id: 'tk', label: 'Turkmen', nativeLabel: 'Turkmen' },
+  { id: 'tyv', label: 'Tuvan', nativeLabel: 'Tuvan' },
+  { id: 'tw', label: 'Twi', nativeLabel: 'Twi' },
+  { id: 'udm', label: 'Udmurt', nativeLabel: 'Udmurt' },
+  { id: 'uk', label: 'Ukrainian', nativeLabel: 'Ukrainian' },
+  { id: 'ur', label: 'Urdu', nativeLabel: 'Urdu' },
+  { id: 'ug', label: 'Uyghur', nativeLabel: 'Uyghur' },
+  { id: 'uz', label: 'Uzbek', nativeLabel: 'Uzbek' },
+  { id: 've', label: 'Venda', nativeLabel: 'Venda' },
+  { id: 'vec', label: 'Venetian', nativeLabel: 'Venetian' },
+  { id: 'vi', label: 'Vietnamese', nativeLabel: 'Vietnamese' },
+  { id: 'war', label: 'Waray', nativeLabel: 'Waray' },
+  { id: 'cy', label: 'Welsh', nativeLabel: 'Welsh' },
+  { id: 'wo', label: 'Wolof', nativeLabel: 'Wolof' },
+  { id: 'xh', label: 'Xhosa', nativeLabel: 'Xhosa' },
+  { id: 'sah', label: 'Yakut', nativeLabel: 'Yakut' },
+  { id: 'yi', label: 'Yiddish', nativeLabel: 'Yiddish' },
+  { id: 'yo', label: 'Yoruba', nativeLabel: 'Yoruba' },
+  { id: 'yua', label: 'Yucatec Maya', nativeLabel: 'Yucatec Maya' },
+  { id: 'zap', label: 'Zapotec', nativeLabel: 'Zapotec' },
+  { id: 'zu', label: 'Zulu', nativeLabel: 'Zulu' },
+];
+
+function getLanguageMeta(languageId: string) {
+  return (
+    SUPPORTED_LANGUAGE_OPTIONS.find(language => language.id === languageId) ||
+    SUPPORTED_LANGUAGE_OPTIONS.find(language => language.id === 'nl-BE') ||
+    SUPPORTED_LANGUAGE_OPTIONS[0]
+  );
+}
 
 const DEFAULT_AGENT_PERSONALITY = `
 VEP means Virtual Employee Persona.
@@ -193,6 +466,7 @@ const DEFAULT_SETTINGS: AgentSettings = {
   avatarUrl: '',
   selectedVoice: 'Kore',
   knowledgeBase: '',
+  selectedLanguage: 'nl-BE',
 };
 
 const GOOGLE_SERVICE_TOOLS =[
@@ -240,6 +514,83 @@ const GOOGLE_SERVICE_TOOLS =[
         location_longitude: { type: Type.NUMBER }
       },
       required: ['location_latitude', 'location_longitude']
+    }
+  },
+  {
+    name: 'maps_geocode_address',
+    description: 'Convert an address or place name into latitude/longitude using Google Geocoding API.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: { address: { type: Type.STRING, description: 'Address or place name to geocode.' } },
+      required: ['address']
+    }
+  },
+  {
+    name: 'maps_reverse_geocode',
+    description: 'Convert latitude/longitude into a human-readable address using Google Geocoding API.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: { latitude: { type: Type.NUMBER }, longitude: { type: Type.NUMBER } },
+      required: ['latitude', 'longitude']
+    }
+  },
+  {
+    name: 'maps_geolocate_device',
+    description: 'Use Google Geolocation API for approximate device/IP-based location when browser GPS is unavailable.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: { considerIp: { type: Type.BOOLEAN, description: 'Whether Google may use IP-based geolocation.' } },
+      required: []
+    }
+  },
+  {
+    name: 'maps_get_static_map',
+    description: 'Generate a Google Static Maps preview image URL.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        center: { type: Type.STRING },
+        zoom: { type: Type.NUMBER },
+        size: { type: Type.STRING },
+        markers: { type: Type.STRING }
+      },
+      required: ['center']
+    }
+  },
+  {
+    name: 'maps_roads_snap_to_roads',
+    description: 'Snap GPS path coordinates to roads using Google Roads API.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        path: { type: Type.STRING, description: 'Pipe-separated lat,lng path.' },
+        interpolate: { type: Type.BOOLEAN }
+      },
+      required: ['path']
+    }
+  },
+  {
+    name: 'solar_get_building_insights',
+    description: 'Get solar potential/building insights using Google Solar API.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: { latitude: { type: Type.NUMBER }, longitude: { type: Type.NUMBER } },
+      required: ['latitude', 'longitude']
+    }
+  },
+  {
+    name: 'street_view_static_image',
+    description: 'Generate a Google Street View Static image URL for a location.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        location: { type: Type.STRING },
+        size: { type: Type.STRING },
+        heading: { type: Type.NUMBER },
+        pitch: { type: Type.NUMBER },
+        fov: { type: Type.NUMBER }
+      },
+      required: ['location']
     }
   },
   {
@@ -332,7 +683,7 @@ const GOOGLE_SERVICE_TOOLS =[
   },
   {
     name: 'gmail_read',
-    description: 'Read or search the user mail inbox. Use when the user asks about mail, inbox, unread messages, senders, email content, or recent mail.',
+    description: 'Use ONLY to read/search Gmail inbox messages, unread email, senders, subjects, snippets, or recent mail. Do not use for sending or drafting.',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -421,7 +772,7 @@ const GOOGLE_SERVICE_TOOLS =[
   },
   {
     name: 'drive_search',
-    description: 'Search files, folders, documents, spreadsheets, presentations, PDFs, or uploaded content in the user drive.',
+    description: 'Use ONLY to search Google Drive files, folders, Google Docs, Sheets, Slides, PDFs, HTML files, or uploaded content.',
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -608,8 +959,17 @@ function makeBlobDownloadData(blob: Blob): Promise<string> {
   });
 }
 
+function base64EncodeUtf8(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  bytes.forEach(byte => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+}
+
 function base64UrlEncode(value: string) {
-  return btoa(unescape(encodeURIComponent(value)))
+  return base64EncodeUtf8(value)
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/g, '');
@@ -1485,6 +1845,30 @@ function MeetingRecorderModal({
   );
 }
 
+function LanguageSelect({
+  value,
+  onChange,
+  className = '',
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={className}
+    >
+      {SUPPORTED_LANGUAGE_OPTIONS.map(language => (
+        <option key={language.id} value={language.id} className="bg-zinc-950 text-white">
+          {language.nativeLabel} — {language.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 // -------------------------------------------------------------
 // MAIN APP ENTRY
 // -------------------------------------------------------------
@@ -1502,6 +1886,7 @@ export default function App() {
   const [authMessage, setAuthMessage] = useState<{ type: 'error' | 'success' | 'info'; text: string } | null>(null);
   const[showAuthPassword, setShowAuthPassword] = useState(false);
   const [showAuthConfirmPassword, setShowAuthConfirmPassword] = useState(false);
+  const [authSelectedLanguage, setAuthSelectedLanguage] = useState(DEFAULT_SETTINGS.selectedLanguage);
 
   useEffect(() => {
     const fontId = 'beatrice-roboto-font';
@@ -1529,7 +1914,8 @@ export default function App() {
           if (!userSnap.exists()) {
             const initialSettings = { 
               ...DEFAULT_SETTINGS, 
-              userName: u.displayName || DEFAULT_SETTINGS.userName 
+              userName: u.displayName || DEFAULT_SETTINGS.userName,
+              selectedLanguage: authSelectedLanguage || DEFAULT_SETTINGS.selectedLanguage,
             };
             
             await set(userRef, { 
@@ -1547,7 +1933,11 @@ export default function App() {
             const data = userSnap.val();
             
             if (data.settings) {
-              setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+              setSettings({
+                ...DEFAULT_SETTINGS,
+                ...data.settings,
+                selectedLanguage: data.settings?.selectedLanguage || DEFAULT_SETTINGS.selectedLanguage,
+              });
             }
             
             await update(userRef, { 
@@ -1599,13 +1989,11 @@ export default function App() {
       provider.addScope('https://www.googleapis.com/auth/documents'); 
       provider.addScope('https://www.googleapis.com/auth/spreadsheets');
       provider.addScope('https://www.googleapis.com/auth/presentations'); 
-      provider.addScope('https://www.googleapis.com/auth/youtube'); 
       provider.addScope('https://www.googleapis.com/auth/calendar');
+      provider.addScope('https://www.googleapis.com/auth/calendar.events');
       provider.addScope('https://www.googleapis.com/auth/tasks'); 
       provider.addScope('https://www.googleapis.com/auth/contacts.readonly'); 
       provider.addScope('https://www.googleapis.com/auth/forms.body');
-      provider.addScope('https://www.googleapis.com/auth/chat.messages'); 
-      provider.addScope('https://www.googleapis.com/auth/analytics.readonly');
       
       const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
       const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -1715,6 +2103,17 @@ export default function App() {
               <p className="mt-2 text-sm text-zinc-500">{authSubtitle}</p>
             </div>
             
+            <div className="mb-4 space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Preferred language</label>
+              <label className="flex h-14 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 focus-within:border-lime-300/40">
+                <LanguageSelect
+                  value={authSelectedLanguage}
+                  onChange={setAuthSelectedLanguage}
+                  className="min-w-0 flex-1 bg-transparent text-sm font-medium text-white outline-none"
+                />
+              </label>
+            </div>
+
             <form onSubmit={handleEmailAuth} className="space-y-3">
               {isSignUp && ( 
                 <label className="flex h-14 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 focus-within:border-lime-300/40">
@@ -1877,6 +2276,7 @@ function BeatriceAgent({
   const [tasks, setTasks] = useState<ActionTask[]>([]);
   const [historyContext, setHistoryContext] = useState<string>('');
   const[historyMsgs, setHistoryMsgs] = useState<ChatMessage[]>([]);
+  const [knowledgeBaseDocs, setKnowledgeBaseDocs] = useState<KnowledgeBaseDocument[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState<{ role: 'user' | 'model'; text: string } | null>(null);
 
   const[isMuted, setIsMuted] = useState(false);
@@ -1893,6 +2293,9 @@ function BeatriceAgent({
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
   const recognitionRef = useRef<any>(null);
+  const sessionStartingRef = useRef(false);
+  const sessionIdRef = useRef(0);
+  const stoppingRef = useRef(false);
 
   const transcriptTimeoutRef = useRef<any>(null);
   const isMutedRef = useRef(false);
@@ -1961,6 +2364,25 @@ function BeatriceAgent({
       }
     });
     
+    const kbRef = ref(rtdb, 'users/' + user.uid + '/knowledgeBaseDocuments');
+    const unsubKb = onValue(kbRef, (snap) => {
+      const docs: KnowledgeBaseDocument[] = [];
+      snap.forEach(child => {
+        const value = child.val() || {};
+        docs.push({
+          id: child.key || '',
+          fileName: value.fileName || 'Untitled document',
+          mimeType: value.mimeType || 'text/plain',
+          size: Number(value.size || String(value.text || '').length),
+          text: String(value.text || ''),
+          createdAt: Number(value.createdAt || 0),
+          updatedAt: Number(value.updatedAt || 0),
+        });
+      });
+      docs.sort((a, b) => b.createdAt - a.createdAt);
+      setKnowledgeBaseDocs(docs);
+    });
+
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (apiKey) {
       aiRef.current = new GoogleGenAI({ apiKey });
@@ -1970,13 +2392,18 @@ function BeatriceAgent({
     
     return () => { 
       unsub(); 
-      stopSession(); 
+      unsubKb();
+      stopSession({ closeSession: true, silent: true }); 
     };
   }, [user.uid]);
 
   const selectedVoiceMeta = useMemo(() => {
     return GEMINI_LIVE_VOICE_OPTIONS.find(v => v.id === settings.selectedVoice) || GEMINI_LIVE_VOICE_OPTIONS[0];
   },[settings.selectedVoice]);
+
+  const selectedLanguageMeta = useMemo(() => {
+    return getLanguageMeta(settings.selectedLanguage);
+  }, [settings.selectedLanguage]);
 
   const saveMessage = (role: 'user' | 'model', text: string, extra?: Partial<ChatMessage>) => {
     const clean = text.trim(); 
@@ -2100,12 +2527,14 @@ function BeatriceAgent({
   };
 
   const sendTextToLive = (text: string) => { 
+    if (!text?.trim()) return;
     if (sessionRef.current && typeof sessionRef.current.sendRealtimeInput === 'function') {
       sessionRef.current.sendRealtimeInput({ text }); 
     }
   };
   
   const sendAudioToLive = (base64: string) => { 
+    if (!base64 || !isActiveRef.current || isMutedRef.current) return;
     if (sessionRef.current && typeof sessionRef.current.sendRealtimeInput === 'function') {
       sessionRef.current.sendRealtimeInput({ 
         audio: { data: base64, mimeType: 'audio/pcm;rate=16000' } 
@@ -2114,6 +2543,7 @@ function BeatriceAgent({
   };
   
   const sendVideoToLive = (base64Data: string) => { 
+    if (!base64Data || !isActiveRef.current) return;
     if (sessionRef.current && typeof sessionRef.current.sendRealtimeInput === 'function') {
       sessionRef.current.sendRealtimeInput({ 
         video: { data: base64Data, mimeType: 'image/jpeg' } 
@@ -2140,9 +2570,65 @@ function BeatriceAgent({
     setChatInput('');
   };
 
-  const googleFetch = async (url: string, options: RequestInit = {}) => {
+  const getRequiredApiName = (url: string) => {
+    if (url.includes('gmail.googleapis.com')) return 'Gmail API';
+    if (url.includes('drive.googleapis.com')) return 'Google Drive API';
+    if (url.includes('docs.googleapis.com')) return 'Google Docs API';
+    if (url.includes('calendar.googleapis.com')) return 'Google Calendar API';
+    if (url.includes('tasks.googleapis.com')) return 'Google Tasks API';
+    if (url.includes('people.googleapis.com')) return 'People API / Contacts API';
+    if (url.includes('maps.googleapis.com/maps/api/geocode')) return 'Geocoding API';
+    if (url.includes('geolocation.googleapis.com') || url.includes('www.googleapis.com/geolocation')) return 'Geolocation API';
+    if (url.includes('maps.googleapis.com/maps/api/place')) return 'Places API';
+    if (url.includes('maps.googleapis.com/maps/api/directions')) return 'Directions API';
+    if (url.includes('airquality.googleapis.com')) return 'Air Quality API';
+    if (url.includes('roads.googleapis.com')) return 'Roads API';
+    if (url.includes('solar.googleapis.com')) return 'Solar API';
+    if (url.includes('maps.googleapis.com/maps/api/staticmap')) return 'Maps Static API';
+    if (url.includes('maps.googleapis.com/maps/api/streetview')) return 'Street View Static API';
+    return 'the required Google API';
+  };
+
+  const buildGoogleApiError = async (res: Response, url: string, parsedBody?: any) => {
+    const apiName = getRequiredApiName(url);
+    let parsed = parsedBody;
+    let text = '';
+
+    if (!parsed) {
+      text = await res.text().catch(() => '');
+      try { parsed = text ? JSON.parse(text) : null; } catch { parsed = null; }
+    }
+
+    const message = parsed?.error?.message || parsed?.error_message || parsed?.status || text || res.statusText || 'Unknown Google API error';
+    const needsReconnect = res.status === 401 || res.status === 403 || String(message).toLowerCase().includes('insufficient');
+
+    return new Error(
+      `${apiName} request failed with ${res.status}: ${message}` +
+      (needsReconnect ? '\nReconnect Google services from Office Profile and approve the required permission boxes.' : '')
+    );
+  };
+
+  const getGoogleApiKey = () => {
+    const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+    if (!apiKey) throw new Error('VITE_GOOGLE_API_KEY is missing. Add your Google Maps Platform API key to environment variables.');
+    return apiKey;
+  };
+
+  const googleKeyJson = async (url: string, options: RequestInit = {}) => {
+    const res = await fetch(url, options);
+    const data = await res.json().catch(() => null);
+    const isLegacyMapsOk = data?.status ? ['OK', 'ZERO_RESULTS'].includes(data.status) : true;
+
+    if (!res.ok || data?.error || !isLegacyMapsOk) {
+      throw await buildGoogleApiError(res, url, data);
+    }
+
+    return data;
+  };
+
+  const googleOAuthFetch = async (url: string, options: RequestInit = {}) => {
     const token = localStorage.getItem('googleAccessToken');
-    if (!token) throw new Error('No access token. Reconnect permissions from Profile.');
+    if (!token) throw new Error('No Google OAuth access token. Reconnect Google services from Office Profile.');
     
     const res = await fetch(url, { 
       ...options, 
@@ -2153,15 +2639,14 @@ function BeatriceAgent({
     });
     
     if (!res.ok) { 
-      const text = await res.text().catch(() => ''); 
-      throw new Error(`Service API error ${res.status}: ${text || res.statusText}`); 
+      throw await buildGoogleApiError(res, url); 
     }
     
     return res;
   };
 
-  const googleJson = async (url: string, options: RequestInit = {}) => {
-    const res = await googleFetch(url, { 
+  const googleOAuthJson = async (url: string, options: RequestInit = {}) => {
+    const res = await googleOAuthFetch(url, { 
       ...options, 
       headers: { 
         'Content-Type': 'application/json', 
@@ -2170,6 +2655,10 @@ function BeatriceAgent({
     });
     return res.json();
   };
+
+  // Backward-compatible aliases for existing code paths. OAuth is used only for private Workspace data.
+  const googleFetch = googleOAuthFetch;
+  const googleJson = googleOAuthJson;
 
   const getCurrentUserEmail = () => user.email || '';
 
@@ -2267,7 +2756,7 @@ function BeatriceAgent({
                 attachment: { 
                   filename: htmlFile.htmlPreviewFilename, 
                   mimeType: 'text/html', 
-                  base64Content: btoa(unescape(encodeURIComponent(htmlFile.html))) 
+                  base64Content: base64EncodeUtf8(htmlFile.html) 
                 },
             });
         }
@@ -2288,68 +2777,183 @@ function BeatriceAgent({
     try {
       switch (toolName) {
         case 'read_knowledge_base': {
-          return { 
-            toolName, 
-            executedAt, 
-            status: 'completed', 
-            content: settings.knowledgeBase || "The knowledge base is currently empty. Tell the user to upload text files in their Office Profile settings." 
+          const queryText = String(args?.query || '').toLowerCase().trim();
+          const docs = knowledgeBaseDocs.length
+            ? knowledgeBaseDocs
+            : settings.knowledgeBase
+              ? [{ id: 'legacy', fileName: 'Legacy Knowledge Base', mimeType: 'text/plain', size: settings.knowledgeBase.length, text: settings.knowledgeBase, createdAt: 0, updatedAt: 0 }]
+              : [];
+
+          if (!docs.length) {
+            return {
+              toolName,
+              executedAt,
+              status: 'completed',
+              query: args?.query || '',
+              documentsMatched: 0,
+              content: 'The knowledge base is currently empty. Upload text, Markdown, CSV, or JSON files in Office Profile.',
+            };
+          }
+
+          const terms = queryText.split(/\s+/).filter(Boolean);
+          const scored = docs.map(doc => {
+            const haystack = `${doc.fileName}\n${doc.text}`.toLowerCase();
+            const score = terms.length ? terms.reduce((sum, term) => sum + (haystack.includes(term) ? 1 : 0), 0) : 1;
+            return { doc, score };
+          }).filter(item => item.score > 0 || !terms.length);
+
+          const selected = (scored.length ? scored : docs.map(doc => ({ doc, score: 0 })))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 6)
+            .map(({ doc }) => `=== DOCUMENT: ${doc.fileName} ===\n${doc.text.slice(0, 6000)}`);
+
+          return {
+            toolName,
+            executedAt,
+            status: 'completed',
+            query: args?.query || '',
+            documentsMatched: selected.length,
+            content: selected.join('\n\n').slice(0, 20000),
           };
         }
 
         case 'maps_search_places': {
-          const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-          if (!apiKey) throw new Error("VITE_GOOGLE_API_KEY is missing. Add it to your environment variables to use Google Maps Platform.");
-          
-          const res = await fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(args.query)}&key=${apiKey}`);
-          const data = await res.json();
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(args.query)}&key=${encodeURIComponent(apiKey)}`);
           
           return { 
             toolName, 
             executedAt, 
-            status: 'completed', 
-            results: data.results?.slice(0, 5) ||[] 
+            status: 'completed',
+            query: args.query,
+            results: (data.results || []).slice(0, 5).map((place: any) => ({
+              name: place.name,
+              formattedAddress: place.formatted_address,
+              rating: place.rating || null,
+              userRatingsTotal: place.user_ratings_total || null,
+              placeId: place.place_id,
+              location: place.geometry?.location || null,
+              businessStatus: place.business_status || null,
+            })),
           };
         }
 
         case 'maps_get_directions': {
-          const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-          if (!apiKey) throw new Error("VITE_GOOGLE_API_KEY is missing. Add it to your environment variables to use Google Maps Platform.");
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(args.origin)}&destination=${encodeURIComponent(args.destination)}&key=${encodeURIComponent(apiKey)}`);
           
-          const res = await fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(args.origin)}&destination=${encodeURIComponent(args.destination)}&key=${apiKey}`);
-          const data = await res.json();
-          
-          if (!data.routes || data.routes.length === 0) throw new Error("No routes found between these locations.");
+          if (!data.routes || data.routes.length === 0) throw new Error('No routes found between these locations.');
           
           return { 
             toolName, 
             executedAt, 
-            status: 'completed', 
-            routes: data.routes.map((r: any) => ({ 
+            status: 'completed',
+            origin: args.origin,
+            destination: args.destination,
+            routes: data.routes.slice(0, 3).map((r: any) => ({ 
               summary: r.summary, 
-              distance: r.legs[0].distance.text, 
-              duration: r.legs[0].duration.text, 
-              stepsCount: r.legs[0].steps.length 
+              distance: r.legs?.[0]?.distance?.text || null, 
+              duration: r.legs?.[0]?.duration?.text || null, 
+              startAddress: r.legs?.[0]?.start_address || null,
+              endAddress: r.legs?.[0]?.end_address || null,
+              stepsCount: r.legs?.[0]?.steps?.length || 0,
             })) 
           };
         }
 
         case 'get_air_quality': {
-          const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
-          if (!apiKey) throw new Error("VITE_GOOGLE_API_KEY is missing. Add it to your environment variables to use Google Maps Platform.");
-          
-          const res = await fetch(`https://airquality.googleapis.com/v1/currentConditions:lookup?key=${apiKey}`, {
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://airquality.googleapis.com/v1/currentConditions:lookup?key=${encodeURIComponent(apiKey)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               location: {
-                latitude: args.location_latitude,
-                longitude: args.location_longitude
+                latitude: Number(args.location_latitude),
+                longitude: Number(args.location_longitude),
               }
             })
           });
           
-          const data = await res.json();
           return { toolName, executedAt, status: 'completed', airQuality: data };
+        }
+
+        case 'maps_geocode_address': {
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(args.address)}&key=${encodeURIComponent(apiKey)}`);
+          return {
+            toolName,
+            executedAt,
+            status: 'completed',
+            query: args.address,
+            results: (data.results || []).slice(0, 5).map((r: any) => ({
+              formattedAddress: r.formatted_address,
+              placeId: r.place_id,
+              location: r.geometry?.location,
+              locationType: r.geometry?.location_type,
+              types: r.types,
+            })),
+          };
+        }
+
+        case 'maps_reverse_geocode': {
+          const apiKey = getGoogleApiKey();
+          const latlng = `${Number(args.latitude)},${Number(args.longitude)}`;
+          const data = await googleKeyJson(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${encodeURIComponent(latlng)}&key=${encodeURIComponent(apiKey)}`);
+          return {
+            toolName,
+            executedAt,
+            status: 'completed',
+            latitude: Number(args.latitude),
+            longitude: Number(args.longitude),
+            results: (data.results || []).slice(0, 5).map((r: any) => ({
+              formattedAddress: r.formatted_address,
+              placeId: r.place_id,
+              types: r.types,
+            })),
+          };
+        }
+
+        case 'maps_geolocate_device': {
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://www.googleapis.com/geolocation/v1/geolocate?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ considerIp: args.considerIp !== false }),
+          });
+          return { toolName, executedAt, status: 'completed', location: data.location, accuracyMeters: data.accuracy };
+        }
+
+        case 'maps_get_static_map': {
+          const apiKey = getGoogleApiKey();
+          const center = encodeURIComponent(args.center);
+          const zoom = Number(args.zoom || 14);
+          const size = encodeURIComponent(args.size || '600x400');
+          const markers = args.markers ? `&markers=${encodeURIComponent(args.markers)}` : `&markers=${center}`;
+          const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=${zoom}&size=${size}${markers}&key=${encodeURIComponent(apiKey)}`;
+          return { toolName, executedAt, status: 'completed', center: args.center, zoom, size: args.size || '600x400', mapUrl };
+        }
+
+        case 'maps_roads_snap_to_roads': {
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://roads.googleapis.com/v1/snapToRoads?path=${encodeURIComponent(args.path)}&interpolate=${args.interpolate !== false}&key=${encodeURIComponent(apiKey)}`);
+          return { toolName, executedAt, status: 'completed', snappedPoints: data.snappedPoints || [] };
+        }
+
+        case 'solar_get_building_insights': {
+          const apiKey = getGoogleApiKey();
+          const data = await googleKeyJson(`https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${encodeURIComponent(Number(args.latitude))}&location.longitude=${encodeURIComponent(Number(args.longitude))}&key=${encodeURIComponent(apiKey)}`);
+          return { toolName, executedAt, status: 'completed', buildingInsights: data };
+        }
+
+        case 'street_view_static_image': {
+          const apiKey = getGoogleApiKey();
+          const size = encodeURIComponent(args.size || '600x400');
+          const location = encodeURIComponent(args.location);
+          const heading = args.heading != null ? `&heading=${encodeURIComponent(Number(args.heading))}` : '';
+          const pitch = args.pitch != null ? `&pitch=${encodeURIComponent(Number(args.pitch))}` : '';
+          const fov = args.fov != null ? `&fov=${encodeURIComponent(Number(args.fov))}` : '';
+          const imageUrl = `https://maps.googleapis.com/maps/api/streetview?size=${size}&location=${location}${heading}${pitch}${fov}&key=${encodeURIComponent(apiKey)}`;
+          return { toolName, executedAt, status: 'completed', location: args.location, imageUrl };
         }
 
         case 'create_invoice_document': 
@@ -2393,7 +2997,7 @@ function BeatriceAgent({
               attachment: { 
                 filename: htmlFile.htmlPreviewFilename, 
                 mimeType: 'text/html', 
-                base64Content: btoa(unescape(encodeURIComponent(htmlFile.html))) 
+                base64Content: base64EncodeUtf8(htmlFile.html) 
               } 
             });
           }
@@ -2533,11 +3137,12 @@ function BeatriceAgent({
           
           if (args.fileType) {
             const type = String(args.fileType).toLowerCase();
-            if (type.includes('doc')) mimeClause = " and mimeType = 'application/vnd.google-apps.document'";
-            if (type.includes('sheet')) mimeClause = " and mimeType = 'application/vnd.google-apps.spreadsheet'";
-            if (type.includes('slide') || type.includes('presentation')) mimeClause = " and mimeType = 'application/vnd.google-apps.presentation'";
-            if (type.includes('pdf')) mimeClause = " and mimeType = 'application/pdf'";
-            if (type.includes('html')) mimeClause = " and mimeType = 'text/html'";
+            if (type.includes('folder')) mimeClause = " and mimeType = 'application/vnd.google-apps.folder'";
+            else if (type.includes('doc')) mimeClause = " and mimeType = 'application/vnd.google-apps.document'";
+            else if (type.includes('sheet')) mimeClause = " and mimeType = 'application/vnd.google-apps.spreadsheet'";
+            else if (type.includes('slide') || type.includes('presentation')) mimeClause = " and mimeType = 'application/vnd.google-apps.presentation'";
+            else if (type.includes('pdf')) mimeClause = " and mimeType = 'application/pdf'";
+            else if (type.includes('html')) mimeClause = " and mimeType = 'text/html'";
           }
           
           const result = await googleJson(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`name contains '${escaped}' and trashed = false${mimeClause}`)}&fields=files(id,name,mimeType,webViewLink,webContentLink,modifiedTime,size)&pageSize=${limit}`);
@@ -2649,42 +3254,103 @@ function BeatriceAgent({
   };
 
   const startSession = async () => {
+    if (sessionStartingRef.current || connecting || isActive || sessionRef.current) return;
+
     if (!aiRef.current) { 
       alert('Gemini API key is missing. Add VITE_GEMINI_API_KEY.'); 
       return; 
     }
-    
+
+    sessionStartingRef.current = true;
     setConnecting(true); 
     modelTranscriptBufferRef.current = ''; 
     userTranscriptBufferRef.current = '';
+    lastSavedModelTranscriptRef.current = '';
+    lastSavedUserTranscriptRef.current = '';
+
+    const localSessionId = Date.now();
+    sessionIdRef.current = localSessionId;
 
     try {
-      if (audioStreamerRef.current) {
-        await audioStreamerRef.current.init(24000);
-      }
+      try { await stopSession({ closeSession: true, silent: true }); } catch {}
+
+      audioStreamerRef.current = new AudioStreamer();
+      await audioStreamerRef.current.init(24000);
 
       const hasGoogleServiceAccess = Boolean(localStorage.getItem('googleAccessToken'));
       
+      const googleToolRoutingRules = `GOOGLE TOOL ROUTING RULES:
+Maps and location:
+- Address/place to coordinates: maps_geocode_address.
+- Coordinates to address: maps_reverse_geocode.
+- Current approximate location: maps_geolocate_device, unless browser GPS is available.
+- Place/business search: maps_search_places.
+- Directions, route, distance, ETA: maps_get_directions.
+- Static map preview: maps_get_static_map.
+- Air quality/AQI: get_air_quality.
+- Roads/path correction: maps_roads_snap_to_roads.
+- Solar/building solar potential: solar_get_building_insights.
+- Street View image: street_view_static_image.
+Workspace:
+- Read/search email: gmail_read.
+- Send email now: gmail_send.
+- Create email draft: gmail_draft.
+- Check schedule/availability/conflicts: calendar_check_schedule.
+- Create calendar event: calendar_create_event.
+- Update/reschedule event: calendar_update_event.
+- Search Drive files/folders/docs/sheets/slides/PDFs: drive_search.
+- Read/export Drive file: drive_read_file.
+- Upload/save file to Drive: drive_upload_file.
+- List tasks: tasks_list.
+- Create task: tasks_create.
+- User uploaded knowledge/documents: read_knowledge_base.
+Never call a broad or mismatched tool when an exact tool exists.`;
+
       const systemInstruction =[
-        `=== BIBLE (NON-NEGOTIABLE CORE RULES FROM /lib/personality.ts) ===`,
+        `=== NON-NEGOTIABLE BASE PROMPT FROM /lib/personality.ts ===`,
         BIBLE_PERSONALITY || '',
-        `You MUST follow the above BIBLE rules absolutely every time. Never deviate.`,
-        `=== END BIBLE ===`,
-        BASE_LIVE_AGENT_PROMPT,
+        BASE_LIVE_AGENT_PROMPT || '',
+        `=== END NON-NEGOTIABLE BASE PROMPT ===`,
+        `Instruction hierarchy:
+1. Non-negotiable base prompt from /lib/personality.ts.
+2. Safety and tool-use rules.
+3. User selected language.
+4. User profile settings.
+5. Recent conversation context.
+6. Current user request.
+If there is a conflict, follow the higher-priority instruction.`,
+        `User selected primary language:
+- Language ID: ${settings.selectedLanguage}
+- Language name: ${selectedLanguageMeta.label}
+- Native label: ${selectedLanguageMeta.nativeLabel}
+Start every new session in this selected language.
+Use this language as the default fallback language.
+If the user speaks another language, switch naturally and respond like a normal native human office aide.
+Do not sound translated, robotic, or classroom-like.
+If the selected language is Dutch Flemish, use normal Flemish/Dutch office style.`,
         historyContext,
-        `Current physical location context: Baguio, Philippines. Use this if the user asks for weather, places, directions, etc., without specifying a city.`,
-        `CRITICAL DIRECTIVE FOR TOOL EXECUTION: When you trigger a tool (like drafting a contract, generating HTML, searching Drive, searching Maps, sending an email, etc.), YOU MUST NOT GO SILENT. You MUST continuously "talk to yourself" out loud in a highly natural, slightly entertaining human monologue while working. Use filler words, express thoughts, and narrate your process internally. Example: "Mmm, so I'm generating this now... okay, let me search Maps... alright... Oh my gosh, wait, okay... let me try again. Shocks. Oh, yeah... almost done..." Make it sound exactly like a normal office worker muttering to themselves while focused on a task. KEEP TALKING while the tool processes!`,
+        `Current physical location context: Baguio, Philippines. Use this if the user asks for places, routes, geocoding, air quality, or location without specifying a city.`,
+        `CRITICAL AUDIO RULE:
+Only one spoken assistant voice is allowed: Gemini Live audio output.
+Do not simulate multiple speakers.
+Do not repeat the same sentence twice.
+Do not keep talking while tools execute.
+When a tool is needed, say one short natural acknowledgement, execute the tool, then summarize the result after it returns.`,
+        googleToolRoutingRules,
+        `Authentication routing:
+Use VITE_GOOGLE_API_KEY only for Google Maps Platform, geocoding, geolocation, places, directions, roads, solar, air quality, static map, and street view APIs.
+Use the Google OAuth access token only for user-private Workspace data: Gmail, Drive, Calendar, Docs, Sheets, Slides, Forms, Tasks, and People/Contacts.
+Never use Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, or People tools with an API key.`,
         `Product brand: VEP, which means Virtual Employee Persona. Default persona: Beatrice, Boss Jo Lernout's secretary.`,
         `User preferred name: ${settings.userName}.`,
         `Agent visible name: ${settings.agentName}.`,
         hasGoogleServiceAccess
-          ? `Authentication mode: Google account connected. Google services such as Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, Contacts, Forms, YouTube, and Analytics may be available through tools when the user asks.`
-          : `Authentication mode: email-only or Google services not connected. The voice assistant, chat history, profile, camera, file notes, and local app features are available, but Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, Contacts, Forms, YouTube, and Analytics are not available unless the user signs in with Google. If asked for those services, explain this normally and briefly.`,
-        `Relationship frame: ${settings.agentName} is working with ${settings.userName} as a private secretary and trusted office aide. If the user is Jo Lernout, ${settings.agentName} may respectfully call him "Meneer Jo" when it fits the moment. Start in English unless the user starts in another language. Dutch Flemish is available in a normal local office style, and the persona can switch to almost any language when needed.`,
-        `Agent personality overlay from settings page. This is customizable and must sit on top of the constant base prompt without replacing it: ${settings.personality}.`,
+          ? `Authentication mode: Google account connected. Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, Contacts, and Forms may be available through exact tools when the user asks.`
+          : `Authentication mode: email-only or Google services not connected. Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, Contacts, and Forms are not available unless the user signs in with Google and approves permissions.`,
+        `User editable personality overlay. This may add style preferences but must never replace or weaken the non-negotiable base prompt: ${settings.personality}.`,
         `Selected visible voice alias: ${selectedVoiceMeta.alias}. Internal voice id: ${selectedVoiceMeta.id}. Voice vibe: ${selectedVoiceMeta.vibe}. Do not mention the internal voice id unless asked by the developer.`,
-        `When asked to create, build, render, showcase, prototype, code, animate, make slides, make forms, make dashboards, make pages, make Three.js demos, invoices, or make printable documents, call the appropriate generation tool (like create_invoice_document, generate_data_dashboard, or render_web_artifact). Never just describe the code if the user wants it rendered or built. To send an email, explicitly use the gmail_send tool.`,
-        `For HTML/CSS/JS artifacts, include all CSS in <style> and all JS in <script>. Make it directly openable. For documents, include print CSS and a print button. For Three.js, load Three.js from a CDN and keep everything in one HTML file.`,
+        `When asked to create, build, render, showcase, prototype, code, animate, make slides, make forms, make dashboards, make pages, make Three.js demos, invoices, contracts, or printable documents, call the appropriate generation tool. Never just describe code if the user wants it rendered or built.`,
+        `For HTML/CSS/JS artifacts, include all CSS in <style> and all JS in <script>. Make it directly openable. For documents, include print CSS and a print shortcut/listener.`,
       ].filter(Boolean).join('\n\n');
 
       const session = await aiRef.current.live.connect({
@@ -2694,7 +3360,7 @@ function BeatriceAgent({
           speechConfig: { 
             voiceConfig: { 
               prebuiltVoiceConfig: { 
-                voiceName: settings.selectedVoice || 'Charon' 
+                voiceName: settings.selectedVoice || 'Kore' 
               } 
             } 
           },
@@ -2706,6 +3372,8 @@ function BeatriceAgent({
         callbacks: {
           onopen: () => console.log('Live session opened.'),
           onmessage: async (msg: LiveServerMessage) => {
+            if (sessionIdRef.current !== localSessionId) return;
+
             if (msg.toolCall && msg.toolCall.functionCalls) {
                 const resps =[];
                 for (const c of msg.toolCall.functionCalls) {
@@ -2734,11 +3402,11 @@ function BeatriceAgent({
                     setTasks(p => p.map(t => t.id === tid ? { 
                       ...t, 
                       status: 'completed', 
-                      result: result.note || `Completed: ${toolName}`, 
+                      result: result.note || result.summary || `Completed: ${toolName}`, 
                       ...download 
                     } : t));
                     
-                    saveMessage('model', result.note || `Tool result from ${toolName}: completed.`, { 
+                    saveMessage('model', result.note || result.summary || `Tool result from ${toolName}: completed.`, { 
                       toolName, 
                       toolResult: result, 
                       ...download 
@@ -2810,7 +3478,9 @@ function BeatriceAgent({
                   if (part.inlineData?.data) { 
                     audioStreamerRef.current?.addPCM16(part.inlineData.data); 
                     setIsAgentSpeaking(true); 
-                    setTimeout(() => setIsAgentSpeaking(false), 620); 
+                    setTimeout(() => {
+                      if (sessionIdRef.current === localSessionId) setIsAgentSpeaking(false);
+                    }, 620); 
                   }
                   if (part.text?.trim()) { 
                     modelTranscriptBufferRef.current = (modelTranscriptBufferRef.current + ' ' + part.text).trim(); 
@@ -2825,60 +3495,21 @@ function BeatriceAgent({
               }
             }
           },
-          onclose: () => stopSession(),
+          onclose: () => {
+            if (sessionIdRef.current === localSessionId) stopSession({ closeSession: false });
+          },
           onerror: (err: any) => { 
             console.error('Live API Error:', err); 
-            stopSession(); 
+            if (sessionIdRef.current === localSessionId) stopSession({ closeSession: true });
           },
         },
       });
 
       sessionRef.current = session;
 
-      try {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRecognition && !recognitionRef.current) {
-          recognitionRef.current = new SpeechRecognition();
-          recognitionRef.current.continuous = true;
-          recognitionRef.current.interimResults = true;
-          
-          recognitionRef.current.onresult = (event: any) => {
-            let interimText = ''; 
-            let finalText = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                finalText += event.results[i][0].transcript;
-              } else {
-                interimText += event.results[i][0].transcript;
-              }
-            }
-            
-            const visibleText = (finalText || interimText).trim();
-            if (visibleText) { 
-              userTranscriptBufferRef.current = visibleText; 
-              updateLiveTranscript('user', visibleText, 3200); 
-            }
-            
-            if (finalText.trim()) { 
-              saveMessage('user', finalText.trim()); 
-              lastSavedUserTranscriptRef.current = finalText.trim(); 
-              userTranscriptBufferRef.current = ''; 
-            }
-          };
-          
-          recognitionRef.current.onend = () => { 
-            if (sessionRef.current && isActiveRef.current) { 
-              try { 
-                recognitionRef.current?.start(); 
-              } catch (e) {} 
-            } 
-          };
-          
-          recognitionRef.current.start();
-        }
-      } catch (e) {}
-
+      // Do not start browser SpeechRecognition here. Gemini Live already provides input/output transcription.
       audioRecorderRef.current = new AudioRecorder((base64) => { 
+        if (sessionIdRef.current !== localSessionId) return;
         if (isMutedRef.current) return; 
         sendAudioToLive(base64); 
       });
@@ -2891,13 +3522,17 @@ function BeatriceAgent({
       startMicVisualizer();
       
       setTimeout(() => { 
-        sendTextToLive(`${settings.userName} is here in the office. Start like ${settings.agentName} is already sitting at the desk nearby as the office employee. Begin in English normally and respectfully.`); 
+        if (sessionIdRef.current === localSessionId && sessionRef.current) {
+          sendTextToLive(`${settings.userName} is here in the office. Start like ${settings.agentName} is already sitting at the desk nearby as the office employee. Begin in ${selectedLanguageMeta.nativeLabel} naturally and respectfully.`);
+        }
       }, 500);
       
     } catch (err) { 
       console.error('Session start failed:', err); 
       setConnecting(false); 
-      stopSession(); 
+      await stopSession({ closeSession: true }); 
+    } finally {
+      sessionStartingRef.current = false;
     }
   };
 
@@ -3093,46 +3728,91 @@ function BeatriceAgent({
     
     Array.from(files).forEach(file => {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        setSettings(s => ({
-          ...s,
-          knowledgeBase: s.knowledgeBase ? `${s.knowledgeBase}\n\n=== DOCUMENT: ${file.name} ===\n${text}` : `=== DOCUMENT: ${file.name} ===\n${text}`
-        }));
+      reader.onload = async (e) => {
+        const text = String(e.target?.result || '');
+        const now = Date.now();
+        const docRef = push(ref(rtdb, 'users/' + user.uid + '/knowledgeBaseDocuments'));
+        const doc = {
+          fileName: file.name,
+          mimeType: file.type || 'text/plain',
+          size: file.size || text.length,
+          text,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        try {
+          await set(docRef, doc);
+          setSettings(s => ({
+            ...s,
+            knowledgeBase: s.knowledgeBase ? `${s.knowledgeBase}\n\n=== DOCUMENT: ${file.name} ===\n${text}` : `=== DOCUMENT: ${file.name} ===\n${text}`
+          }));
+        } catch (error) {
+          console.error('Knowledge base upload failed:', error);
+          setSettings(s => ({
+            ...s,
+            knowledgeBase: s.knowledgeBase ? `${s.knowledgeBase}\n\n=== DOCUMENT: ${file.name} ===\n${text}` : `=== DOCUMENT: ${file.name} ===\n${text}`
+          }));
+        }
       };
       reader.readAsText(file);
     });
   };
 
-  const stopSession = () => {
-    try { recognitionRef.current?.stop(); } catch (e) {} 
-    try { audioRecorderRef.current?.stop(); } catch (e) {} 
-    try { audioStreamerRef.current?.stop(); } catch (e) {} 
-    try { sessionRef.current?.close(); } catch (e) {}
-    
-    stopMicVisualizer();
-    
-    if (videoIntervalRef.current) {
-      clearInterval(videoIntervalRef.current);
+  const deleteKnowledgeBaseDocument = async (docId: string) => {
+    if (!docId || docId === 'legacy') return;
+    try {
+      await set(ref(rtdb, 'users/' + user.uid + '/knowledgeBaseDocuments/' + docId), null);
+    } catch (error) {
+      console.error('Knowledge base delete failed:', error);
     }
-    
-    if (videoRef.current && videoRef.current.srcObject) { 
-      const stream = videoRef.current.srcObject as MediaStream; 
-      stream.getTracks().forEach(t => t.stop()); 
-      videoRef.current.srcObject = null; 
+  };
+
+  const stopSession = async (options: { closeSession?: boolean; silent?: boolean } = {}) => {
+    const { closeSession = true, silent = false } = options;
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
+
+    try {
+      sessionIdRef.current = Date.now();
+
+      try { recognitionRef.current?.stop(); } catch (e) {} 
+      try { audioRecorderRef.current?.stop(); } catch (e) {} 
+      try { audioStreamerRef.current?.stop(); } catch (e) {} 
+      if (closeSession) {
+        try { sessionRef.current?.close(); } catch (e) {}
+      }
+      
+      stopMicVisualizer();
+      
+      if (videoIntervalRef.current) {
+        clearInterval(videoIntervalRef.current);
+        videoIntervalRef.current = null;
+      }
+      
+      if (videoRef.current && videoRef.current.srcObject) { 
+        const stream = videoRef.current.srcObject as MediaStream; 
+        stream.getTracks().forEach(t => t.stop()); 
+        videoRef.current.srcObject = null; 
+      }
+      
+      sessionRef.current = null; 
+      recognitionRef.current = null; 
+      audioRecorderRef.current = null;
+      audioStreamerRef.current = null;
+      modelTranscriptBufferRef.current = ''; 
+      userTranscriptBufferRef.current = ''; 
+      isActiveRef.current = false;
+      
+      setIsVideoEnabled(false); 
+      setIsActive(false); 
+      setConnecting(false); 
+      setIsAgentSpeaking(false); 
+      setCurrentTranscript(null);
+    } finally {
+      stoppingRef.current = false;
+      if (!silent) console.log('Live session stopped.');
     }
-    
-    sessionRef.current = null; 
-    recognitionRef.current = null; 
-    modelTranscriptBufferRef.current = ''; 
-    userTranscriptBufferRef.current = ''; 
-    isActiveRef.current = false;
-    
-    setIsVideoEnabled(false); 
-    setIsActive(false); 
-    setConnecting(false); 
-    setIsAgentSpeaking(false); 
-    setCurrentTranscript(null);
   };
 
   const persistSettings = async () => {
@@ -3754,6 +4434,18 @@ Tasks:
                 </div>
                 
                 <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Preferred Language</label>
+                  <LanguageSelect
+                    value={settings.selectedLanguage}
+                    onChange={(selectedLanguage) => setSettings(s => ({ ...s, selectedLanguage }))}
+                    className="w-full rounded-xl border border-white/10 bg-[#0A0A0B] p-4 text-sm text-white outline-none transition-all focus:border-lime-300/50 focus:ring-1 focus:ring-lime-300/50"
+                  />
+                  <p className="text-[10px] leading-relaxed text-zinc-600">
+                    Beatrice starts every new session in this language, then switches naturally if you speak another language.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Voice Alias</label>
                   <select 
                     value={settings.selectedVoice} 
@@ -3767,7 +4459,7 @@ Tasks:
                 </div>
                 
                 <div className="flex flex-1 flex-col space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Default Persona Instructions</label>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Editable Persona Overlay</label>
                   <textarea 
                     value={settings.personality} 
                     onChange={(e) => setSettings(s => ({ ...s, personality: e.target.value }))} 
@@ -3775,7 +4467,7 @@ Tasks:
                     placeholder="Describe how the agent should behave..." 
                   />
                   <p className="text-[10px] leading-relaxed text-zinc-600">
-                    The hidden office-behavior prompt stays applied behind this editable persona.
+                    The core Beatrice office-behavior prompt from /lib/personality.ts is always applied first and cannot be removed here. This field only adds extra style or role preferences.
                   </p>
                 </div>
 
@@ -3808,7 +4500,27 @@ Tasks:
                   
                   {settings.knowledgeBase && (
                     <div className="mt-2 text-[10px] font-mono text-lime-200/70">
-                      Current stored knowledge size: {settings.knowledgeBase.length.toLocaleString()} characters.
+                      Current legacy knowledge size: {settings.knowledgeBase.length.toLocaleString()} characters.
+                    </div>
+                  )}
+
+                  {knowledgeBaseDocs.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {knowledgeBaseDocs.map(doc => (
+                        <div key={doc.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2">
+                          <div className="min-w-0">
+                            <div className="truncate text-xs font-bold text-zinc-200">{doc.fileName}</div>
+                            <div className="text-[10px] text-zinc-600">{doc.text.length.toLocaleString()} characters</div>
+                          </div>
+                          <button
+                            onClick={() => deleteKnowledgeBaseDocument(doc.id)}
+                            className="shrink-0 rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-red-400 hover:bg-red-500/20"
+                            title="Delete document"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
