@@ -91,6 +91,7 @@ interface AgentSettings {
   personality: string;
   avatarUrl: string;
   selectedVoice: string;
+  selectedLanguage: string;
   knowledgeBase: string;
 }
 
@@ -98,6 +99,12 @@ const LIVE_MODEL = 'gemini-3.1-flash-live-preview';
 const EBURON_LOGO_URL = 'https://eburon.ai/icon-eburon.svg';
 const PRODUCT_BRAND = 'VEP';
 const PRODUCT_FULL_NAME = 'Virtual Employee Persona';
+
+const SUPPORTED_LANGUAGES =[
+  'English', 'Dutch', 'Flemish Dutch', 'French', 'German', 'Spanish',
+  'Italian', 'Portuguese', 'Japanese', 'Korean', 'Mandarin Chinese',
+  'Tagalog', 'Cebuano', 'Arabic', 'Hindi', 'Russian'
+];
 
 const GEMINI_LIVE_VOICE_OPTIONS =[
   { alias: 'Superman', id: 'Charon', vibe: 'deep, steady, grounded' },
@@ -163,13 +170,6 @@ Tone:
 - never customer support
 - never over-helpful
 
-Language:
-- Start in English by default.
-- Beatrice speaks Dutch Flemish in a normal, local office style.
-- Beatrice can switch to almost any language when the user does.
-- If Jo speaks Dutch or Flemish Dutch, respond in a normal Dutch/Flemish style.
-- Keep the relationship respectful and professional.
-
 Good response style:
 "Yes, I'm here, Meneer Jo."
 "I'm listening, Meneer Jo."
@@ -192,6 +192,7 @@ const DEFAULT_SETTINGS: AgentSettings = {
   personality: DEFAULT_AGENT_PERSONALITY,
   avatarUrl: '',
   selectedVoice: 'Kore',
+  selectedLanguage: 'English',
   knowledgeBase: '',
 };
 
@@ -256,7 +257,7 @@ const GOOGLE_SERVICE_TOOLS =[
         actionItems: { type: Type.STRING, description: 'HTML formatted list of action items.' },
         emailTo: { type: Type.STRING, description: 'Optional email address.' }
       },
-      required: ['meetingTitle', 'summary']
+      required:['meetingTitle', 'summary']
     }
   },
   {
@@ -298,7 +299,7 @@ const GOOGLE_SERVICE_TOOLS =[
         title: { type: Type.STRING },
         tasks: { type: Type.STRING, description: 'Mermaid gantt syntax lines. E.g. "Section 1\\nTask A :a1, 2023-01-01, 30d\\nTask B :after a1, 20d"' }
       },
-      required: ['title', 'tasks']
+      required:['title', 'tasks']
     }
   },
   {
@@ -456,7 +457,7 @@ const GOOGLE_SERVICE_TOOLS =[
         mimeType: { type: Type.STRING, description: 'File MIME type.' },
         folderId: { type: Type.STRING, description: 'Optional folder id.' },
       },
-      required: ['fileName', 'content'],
+      required:['fileName', 'content'],
     },
   },
   {
@@ -511,7 +512,7 @@ const GOOGLE_SERVICE_TOOLS =[
         terms: { type: Type.STRING, description: 'Important terms, scope, payment, obligations, duration, termination, confidentiality, etc.' },
         emailTo: { type: Type.STRING, description: 'Optional email address to send the stunning HTML contract to. Use current_user if requested.' },
       },
-      required: ['title', 'contractType', 'partyA', 'partyB', 'terms'],
+      required:['title', 'contractType', 'partyA', 'partyB', 'terms'],
     },
   },
 ];
@@ -707,17 +708,13 @@ function buildMeetingMinutesHtml(args: any) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; padding: 2rem; margin: 0; }
+  body { font-family: sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; padding: 2rem; margin: 0; }
   .doc { max-width: 800px; margin: 0 auto; background: white; padding: 4rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 6px solid #3b82f6; border-radius: 8px; }
-  h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; }
+  h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #0f172a; text-transform: uppercase; }
   .meta { display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 2rem; color: #64748b; }
   h2 { font-size: 1.4rem; color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; margin-top: 2.5rem; }
-  ul { padding-left: 1.5rem; }
-  li { margin-bottom: 0.5rem; }
   .highlight-box { background: #f1f5f9; padding: 1.5rem; border-radius: 6px; margin-top: 1rem; }
-  @media print { body { padding: 0; background: white; } .doc { box-shadow: none; padding: 0; border-top: 4px solid #000; } }
 </style>
 </head>
 <body>
@@ -728,21 +725,11 @@ function buildMeetingMinutesHtml(args: any) {
       <div><strong>Date:</strong> ${args.date || today}</div>
     </div>
     <div style="margin-bottom: 2rem;"><strong>Attendees:</strong> ${args.attendees || 'N/A'}</div>
-    
     <h2>Executive Summary</h2>
-    <div class="highlight-box">
-      <p style="margin:0;">${args.summary || 'No summary provided.'}</p>
-    </div>
-    
-    <h2>Key Decisions</h2>
-    ${args.decisions || '<p>None recorded.</p>'}
-    
-    <h2>Action Items</h2>
-    ${args.actionItems || '<p>None recorded.</p>'}
+    <div class="highlight-box"><p style="margin:0;">${args.summary || 'No summary provided.'}</p></div>
+    <h2>Key Decisions</h2>${args.decisions || '<p>None recorded.</p>'}
+    <h2>Action Items</h2>${args.actionItems || '<p>None recorded.</p>'}
   </div>
-  <script>
-    window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); window.print(); } });
-  </script>
 </body>
 </html>`;
 }
@@ -753,11 +740,7 @@ function buildInvoiceHtml(args: any) {
   let subtotal = 0;
   
   let parsedItems =[];
-  try {
-    parsedItems = typeof args.items === 'string' ? JSON.parse(args.items) : args.items;
-  } catch (e) {
-    // ignore
-  }
+  try { parsedItems = typeof args.items === 'string' ? JSON.parse(args.items) : args.items; } catch (e) {}
 
   if (!Array.isArray(parsedItems)) parsedItems =[];
   
@@ -782,18 +765,15 @@ function buildInvoiceHtml(args: any) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8fafc; color: #1e293b; padding: 2rem; margin: 0; }
+  body { font-family: sans-serif; background: #f8fafc; color: #1e293b; padding: 2rem; margin: 0; }
   .doc { max-width: 800px; margin: 0 auto; background: white; padding: 4rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-radius: 8px; }
   .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
   h1 { font-size: 3rem; margin: 0; color: #0f172a; text-transform: uppercase; letter-spacing: 2px; }
   table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
   th { background: #f1f5f9; padding: 1rem; text-align: left; text-transform: uppercase; font-size: 0.85rem; color: #64748b; }
   .totals { width: 50%; float: right; margin-top: 2rem; background: #f8fafc; padding: 1.5rem; border-radius: 8px; }
-  .totals table { margin-top: 0; }
   .clearfix::after { content: ""; clear: both; display: table; }
-  @media print { body { padding: 0; background: white; } .doc { box-shadow: none; padding: 0; } }
 </style>
 </head>
 <body>
@@ -809,27 +789,18 @@ function buildInvoiceHtml(args: any) {
         <div style="margin-top: 1rem;"><strong>Date:</strong> ${args.date || today}</div>
       </div>
     </div>
-    
     <table>
-      <thead>
-        <tr><th>Description</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr>
-      </thead>
-      <tbody>
-        ${itemsHtml || '<tr><td colspan="4" style="text-align:center; padding:1rem;">No items</td></tr>'}
-      </tbody>
+      <thead><tr><th>Description</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead>
+      <tbody>${itemsHtml || '<tr><td colspan="4" style="text-align:center; padding:1rem;">No items</td></tr>'}</tbody>
     </table>
-    
     <div class="totals">
-      <table>
+      <table style="margin-top:0;">
         <tr><td style="padding:0.5rem; color: #64748b;">Subtotal</td><td style="text-align:right;">$${subtotal.toFixed(2)}</td></tr>
         <tr><td style="padding:0.5rem; color: #64748b;">Tax (${taxRate}%)</td><td style="text-align:right;">$${taxAmount.toFixed(2)}</td></tr>
         <tr><td style="padding:1rem 0.5rem; font-size:1.4rem; font-weight:bold; color: #0f172a; border-top:2px solid #cbd5e1;">Total</td><td style="text-align:right; font-size:1.4rem; font-weight:bold; color: #0f172a; border-top:2px solid #cbd5e1;">$${grandTotal.toFixed(2)}</td></tr>
       </table>
     </div>
   </div>
-  <script>
-    window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); window.print(); } });
-  </script>
 </body>
 </html>`;
 }
@@ -837,22 +808,16 @@ function buildInvoiceHtml(args: any) {
 function buildDashboardHtml(args: any) {
   let labels = [];
   let datasets =[];
-  try {
-    labels = typeof args.labels === 'string' ? args.labels.split(',') : args.labels;
-  } catch (e) {}
-
-  try {
-    datasets = typeof args.datasets === 'string' ? JSON.parse(args.datasets) : args.datasets;
-  } catch (e) {}
+  try { labels = typeof args.labels === 'string' ? args.labels.split(',') : args.labels; } catch (e) {}
+  try { datasets = typeof args.datasets === 'string' ? JSON.parse(args.datasets) : args.datasets; } catch (e) {}
   
   return `<!DOCTYPE html>
 <html>
 <head>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Inter', sans-serif; background: #0f172a; padding: 2rem; display: flex; justify-content: center; margin: 0; min-height: 100vh; align-items: center; }
+  body { font-family: sans-serif; background: #0f172a; padding: 2rem; display: flex; justify-content: center; margin: 0; min-height: 100vh; align-items: center; }
   .card { background: white; padding: 3rem; border-radius: 16px; width: 100%; max-width: 900px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
   h2 { text-align: center; color: #1e293b; margin-top: 0; margin-bottom: 2rem; font-size: 2rem; }
 </style>
@@ -866,8 +831,8 @@ function buildDashboardHtml(args: any) {
     new Chart(document.getElementById('myChart'), {
       type: '${args.chartType || 'bar'}',
       data: {
-        labels: ${JSON.stringify(labels && labels.length ? labels : ['A','B','C'])},
-        datasets: ${JSON.stringify(datasets && datasets.length ? datasets : [{label: 'Data', data:[1,2,3]}])}
+        labels: ${JSON.stringify(labels && labels.length ? labels :['A','B','C'])},
+        datasets: ${JSON.stringify(datasets && datasets.length ? datasets :[{label: 'Data', data:[1,2,3]}])}
       },
       options: { responsive: true, plugins: { legend: { position: 'top' } } }
     });
@@ -881,9 +846,8 @@ function buildGanttHtml(args: any) {
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Inter', sans-serif; background: #0f172a; padding: 2rem; display: flex; justify-content: center; margin: 0; min-height: 100vh; align-items: center; }
+  body { font-family: sans-serif; background: #0f172a; padding: 2rem; display: flex; justify-content: center; margin: 0; min-height: 100vh; align-items: center; }
   .card { background: white; padding: 3rem; border-radius: 16px; width: 100%; max-width: 1000px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); overflow-x: auto; }
   h2 { color: #1e293b; margin-top: 0; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; font-size: 2rem; }
 </style>
@@ -900,7 +864,7 @@ gantt
   </div>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#3b82f6', primaryTextColor: '#fff', primaryBorderColor: '#2563eb', lineType: 'curve' } });
+    mermaid.initialize({ startOnLoad: true, theme: 'base' });
   </script>
 </body>
 </html>`;
@@ -921,7 +885,6 @@ function buildStunningHtmlContract({
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title || 'Contract Agreement'}</title>
 <style>
   :root { --primary: #1a1a1a; --secondary: #4a4a4a; --accent: #2c5282; --bg: #f8fafc; --paper: #ffffff; --border: #e2e8f0; }
@@ -936,8 +899,6 @@ function buildStunningHtmlContract({
   .section h2 { font-size: 1.4rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
   .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 5rem; }
   .signature-block { border-top: 1px solid var(--primary); padding-top: 1rem; }
-  .signature-block strong { display: block; margin-bottom: 0.5rem; }
-  @media print { body { background: white; padding: 0; } .document { box-shadow: none; max-width: 100%; padding: 0; border-top: 4px solid #000; } }
 </style>
 </head>
 <body>
@@ -965,11 +926,10 @@ function buildStunningHtmlContract({
     <div class="section"><h2>5. Term & Termination</h2><p>This Agreement begins on the Effective Date and continues until completed, terminated by mutual agreement, or terminated according to written terms agreed by the parties.</p></div>
     <div class="section"><h2>6. Governing Law</h2><p>This Agreement shall be governed by and construed in accordance with the laws of ${jurisdiction || 'the applicable jurisdiction'}. Any disputes arising under this agreement will be resolved in the appropriate courts of this jurisdiction.</p></div>
     <div class="signatures">
-      <div class="signature-block"><strong>${partyA || 'Party A'}</strong><div style="color:#666; font-size:0.9rem; margin-top:0.5rem;">Signature</div><div style="margin-top:2.5rem; border-bottom:1px solid #ccc; width:85%;"></div><div style="color:#666; font-size:0.9rem; margin-top:0.5rem;">Date</div></div>
-      <div class="signature-block"><strong>${partyB || 'Party B'}</strong><div style="color:#666; font-size:0.9rem; margin-top:0.5rem;">Signature</div><div style="margin-top:2.5rem; border-bottom:1px solid #ccc; width:85%;"></div><div style="color:#666; font-size:0.9rem; margin-top:0.5rem;">Date</div></div>
+      <div class="signature-block"><strong>${partyA || 'Party A'}</strong><div style="color:#666; font-size:0.9rem; margin-top:0.5rem;">Signature</div><div style="margin-top:2.5rem; border-bottom:1px solid #ccc; width:85%;"></div></div>
+      <div class="signature-block"><strong>${partyB || 'Party B'}</strong><div style="color:#666; font-size:0.9rem; margin-top:0.5rem;">Signature</div><div style="margin-top:2.5rem; border-bottom:1px solid #ccc; width:85%;"></div></div>
     </div>
   </div>
-  <script>window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'p') { e.preventDefault(); window.print(); } });</script>
 </body>
 </html>`;
 }
@@ -1309,7 +1269,7 @@ function MeetingRecorderModal({
   onProcess: (transcript: string) => Promise<void>;
 }) {
   const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const[isProcessing, setIsProcessing] = useState(false);
   const [duration, setDuration] = useState(0);
   const[transcript, setTranscript] = useState('');
   
@@ -1491,13 +1451,13 @@ function MeetingRecorderModal({
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const[loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<AgentSettings>(DEFAULT_SETTINGS);
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'reset'>('signin');
   const [authName, setAuthName] = useState('');
-  const [authEmail, setAuthEmail] = useState('');
+  const[authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authConfirmPassword, setAuthConfirmPassword] = useState('');
+  const[authConfirmPassword, setAuthConfirmPassword] = useState('');
   const[authBusy, setAuthBusy] = useState(false);
   const [authMessage, setAuthMessage] = useState<{ type: 'error' | 'success' | 'info'; text: string } | null>(null);
   const[showAuthPassword, setShowAuthPassword] = useState(false);
@@ -1869,13 +1829,13 @@ function BeatriceAgent({
 }) {
   const [isActive, setIsActive] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
+  const[isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [micLevel, setMicLevel] = useState(0);
   const[micBands, setMicBands] = useState<number[]>(Array(20).fill(0));
   const[speakerLevel, setSpeakerLevel] = useState(0);
   const [speakerBands, setSpeakerBands] = useState<number[]>(Array(20).fill(0));
   const [tasks, setTasks] = useState<ActionTask[]>([]);
-  const [historyContext, setHistoryContext] = useState<string>('');
+  const[historyContext, setHistoryContext] = useState<string>('');
   const[historyMsgs, setHistoryMsgs] = useState<ChatMessage[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState<{ role: 'user' | 'model'; text: string } | null>(null);
 
@@ -1892,7 +1852,7 @@ function BeatriceAgent({
   const sessionRef = useRef<any>(null);
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
   const audioRecorderRef = useRef<AudioRecorder | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const pendingToolCallsRef = useRef<any[] | null>(null);
 
   const transcriptTimeoutRef = useRef<any>(null);
   const isMutedRef = useRef(false);
@@ -2121,6 +2081,88 @@ function BeatriceAgent({
     }
   };
 
+  const executePendingTools = async () => {
+    const calls = pendingToolCallsRef.current;
+    pendingToolCallsRef.current = null; 
+    setTasks(p => p.filter(t => t.id !== 'pending')); 
+
+    if (!calls || calls.length === 0) return;
+
+    const results =[];
+    for (const c of calls) {
+      const toolName = c.name;
+      const args = c.args;
+      const tid = Math.random().toString(36).substring(7);
+
+      setTasks(p =>[...p, {
+        id: tid,
+        serviceName: toolName,
+        action: safeJsonStringify(args || {}),
+        status: 'processing'
+      }]);
+
+      try {
+        const result = await executeGoogleTool(toolName, args);
+        const download = result.downloadData && result.downloadFilename
+          ? {
+              downloadData: result.downloadData,
+              downloadFilename: result.downloadFilename,
+              htmlPreviewData: result.htmlPreviewData,
+              htmlPreviewFilename: result.htmlPreviewFilename
+            }
+          : makeDownloadFile(result, toolName);
+
+        setTasks(p => p.map(t => t.id === tid ? {
+          ...t,
+          status: 'completed',
+          result: result.note || `Completed: ${toolName}`,
+          ...download
+        } : t));
+
+        saveMessage('model', result.note || `Tool result from ${toolName}: completed.`, {
+          toolName,
+          toolResult: result,
+          ...download
+        });
+
+        setTimeout(() => setTasks(p => p.filter(t => t.id !== tid)), 16000);
+        results.push({ name: toolName, result });
+      } catch (err: any) {
+        const errorMsg = String(err?.message || err);
+        setTasks(p => p.map(t => t.id === tid ? {
+          ...t,
+          status: 'failed',
+          result: errorMsg
+        } : t));
+
+        saveMessage('model', `Tool failed from ${toolName}: ${errorMsg}`);
+        results.push({ name: toolName, error: errorMsg });
+      }
+    }
+
+    if (sessionRef.current && typeof sessionRef.current.sendRealtimeInput === 'function') {
+      sessionRef.current.sendRealtimeInput({
+        text: `[SYSTEM: Tool execution completed. Results: ${JSON.stringify(results)}. Inform the user truthfully.]`
+      });
+    }
+  };
+
+  const checkConfirmation = (text: string) => {
+    if (!pendingToolCallsRef.current || pendingToolCallsRef.current.length === 0) return;
+
+    const lower = text.toLowerCase();
+    const isConfirm = /(yes|go ahead|do it|confirm|sure|ok|okay|yep|yeah|proceed|please|right|certainly)/i.test(lower);
+    const isCancel = /(no|cancel|stop|wait|nevermind|don't|do not|abort|pause)/i.test(lower);
+
+    if (isConfirm) {
+       executePendingTools();
+    } else if (isCancel) {
+       pendingToolCallsRef.current = null;
+       setTasks(p => p.filter(t => t.id !== 'pending'));
+       sendTextToLive("[SYSTEM: User cancelled the pending action. Acknowledge this properly.]");
+    }
+  };
+
   const sendChatMessage = (e?: FormEvent) => {
     if (e) e.preventDefault();
     const clean = chatInput.trim(); 
@@ -2129,6 +2171,10 @@ function BeatriceAgent({
     saveMessage('user', clean); 
     updateLiveTranscript('user', clean, 3200);
     
+    if (pendingToolCallsRef.current && pendingToolCallsRef.current.length > 0) {
+      checkConfirmation(clean);
+    }
+
     if (sessionRef.current) {
       sendTextToLive(clean);
     } else { 
@@ -2179,33 +2225,6 @@ function BeatriceAgent({
       `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`name contains '${escaped}' and trashed = false`)}&fields=files(id,name,mimeType,webViewLink,webContentLink,modifiedTime)&pageSize=1`
     );
     return result.files?.[0] || null;
-  };
-
-  const createGoogleDoc = async (title: string, content: string) => {
-    const doc = await googleJson('https://docs.googleapis.com/v1/documents', { 
-      method: 'POST', 
-      body: JSON.stringify({ title }) 
-    });
-    
-    if (content?.trim()) {
-      await googleJson(`https://docs.googleapis.com/v1/documents/${doc.documentId}:batchUpdate`, { 
-        method: 'POST', 
-        body: JSON.stringify({ 
-          requests:[
-            { 
-              insertText: { 
-                location: { index: 1 }, 
-                text: content 
-              } 
-            }
-          ] 
-        }) 
-      });
-    }
-    
-    const file = await googleJson(`https://www.googleapis.com/drive/v3/files/${doc.documentId}?fields=id,name,mimeType,webViewLink`);
-    
-    return { ...doc, driveFile: file };
   };
 
   const exportDriveFile = async (fileId: string, mimeType: string) => {
@@ -2673,24 +2692,35 @@ function BeatriceAgent({
         BASE_LIVE_AGENT_PROMPT,
         historyContext,
         `Current physical location context: Baguio, Philippines. Use this if the user asks for weather, places, directions, etc., without specifying a city.`,
-        `CRITICAL DIRECTIVE FOR TOOL EXECUTION: When you trigger a tool (like drafting a contract, generating HTML, searching Drive, searching Maps, sending an email, etc.), YOU MUST NOT GO SILENT. You MUST continuously "talk to yourself" out loud in a highly natural, slightly entertaining human monologue while working. Use filler words, express thoughts, and narrate your process internally. Example: "Mmm, so I'm generating this now... okay, let me search Maps... alright... Oh my gosh, wait, okay... let me try again. Shocks. Oh, yeah... almost done..." Make it sound exactly like a normal office worker muttering to themselves while focused on a task. KEEP TALKING while the tool processes!`,
         `Product brand: VEP, which means Virtual Employee Persona. Default persona: Beatrice, Boss Jo Lernout's secretary.`,
         `User preferred name: ${settings.userName}.`,
         `Agent visible name: ${settings.agentName}.`,
         hasGoogleServiceAccess
           ? `Authentication mode: Google account connected. Google services such as Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, Contacts, Forms, YouTube, and Analytics may be available through tools when the user asks.`
           : `Authentication mode: email-only or Google services not connected. The voice assistant, chat history, profile, camera, file notes, and local app features are available, but Gmail, Drive, Calendar, Docs, Sheets, Slides, Tasks, Contacts, Forms, YouTube, and Analytics are not available unless the user signs in with Google. If asked for those services, explain this normally and briefly.`,
-        `Relationship frame: ${settings.agentName} is working with ${settings.userName} as a private secretary and trusted office aide. If the user is Jo Lernout, ${settings.agentName} may respectfully call him "Meneer Jo" when it fits the moment. Start in English unless the user starts in another language. Dutch Flemish is available in a normal local office style, and the persona can switch to almost any language when needed.`,
+        `Relationship frame: ${settings.agentName} is working with ${settings.userName} as a private secretary and trusted office aide. Keep the relationship respectful and professional.`,
         `Agent personality overlay from settings page. This is customizable and must sit on top of the constant base prompt without replacing it: ${settings.personality}.`,
         `Selected visible voice alias: ${selectedVoiceMeta.alias}. Internal voice id: ${selectedVoiceMeta.id}. Voice vibe: ${selectedVoiceMeta.vibe}. Do not mention the internal voice id unless asked by the developer.`,
         `When asked to create, build, render, showcase, prototype, code, animate, make slides, make forms, make dashboards, make pages, make Three.js demos, invoices, or make printable documents, call the appropriate generation tool (like create_invoice_document, generate_data_dashboard, or render_web_artifact). Never just describe the code if the user wants it rendered or built. To send an email, explicitly use the gmail_send tool.`,
         `For HTML/CSS/JS artifacts, include all CSS in <style> and all JS in <script>. Make it directly openable. For documents, include print CSS and a print button. For Three.js, load Three.js from a CDN and keep everything in one HTML file.`,
+        
+        `=== TOOL EXECUTION & CONFIRMATION RULES ===`,
+        `You MUST NEVER call tools automatically for external actions without confirming first. Tools may only be used when the user explicitly asks for an external action.`,
+        `Before executing any tool, you must ask the user for confirmation in plain human language. Say exactly what you are about to do and ask for a 'Yes' or 'No'.`,
+        `Speak normally like a calm office aide. Do not pretend to work, search, save, email, or find anything unless a real tool call completed successfully. Do not use exaggerated mock working monologues.`,
+        `Do not query tools unless clearly requested.`,
+        
+        `=== TRUTHFULNESS RULES ===`,
+        `Never invent files, links, emails, calendar events, search results, document contents, or completed actions. If a tool was not used, answer only from conversation context. If a tool fails, report the actual failure briefly.`,
+        
+        `=== LANGUAGE RULE ===`,
+        `Your primary speaking language is ${settings.selectedLanguage}. Always respond in ${settings.selectedLanguage} unless the user explicitly switches languages.`
       ].filter(Boolean).join('\n\n');
 
       const session = await aiRef.current.live.connect({
         model: LIVE_MODEL,
         config: {
-          responseModalities: [Modality.AUDIO],
+          responseModalities:[Modality.AUDIO],
           speechConfig: { 
             voiceConfig: { 
               prebuiltVoiceConfig: { 
@@ -2707,81 +2737,27 @@ function BeatriceAgent({
           onopen: () => console.log('Live session opened.'),
           onmessage: async (msg: LiveServerMessage) => {
             if (msg.toolCall && msg.toolCall.functionCalls) {
-                const resps =[];
-                for (const c of msg.toolCall.functionCalls) {
-                  const toolName = c.name || 'unknown_tool'; 
-                  const args = c.args as any; 
-                  const tid = Math.random().toString(36).substring(7);
-                  
-                  setTasks(p =>[...p, { 
-                    id: tid, 
-                    serviceName: toolName, 
-                    action: safeJsonStringify(args || {}), 
-                    status: 'processing' 
-                  }]);
-                  
-                  try {
-                    const result = await executeGoogleTool(toolName, args);
-                    const download = result.downloadData && result.downloadFilename 
-                      ? { 
-                          downloadData: result.downloadData, 
-                          downloadFilename: result.downloadFilename, 
-                          htmlPreviewData: result.htmlPreviewData, 
-                          htmlPreviewFilename: result.htmlPreviewFilename 
-                        } 
-                      : makeDownloadFile(result, toolName);
-                      
-                    setTasks(p => p.map(t => t.id === tid ? { 
-                      ...t, 
-                      status: 'completed', 
-                      result: result.note || `Completed: ${toolName}`, 
-                      ...download 
-                    } : t));
-                    
-                    saveMessage('model', result.note || `Tool result from ${toolName}: completed.`, { 
-                      toolName, 
-                      toolResult: result, 
-                      ...download 
-                    });
-                    
-                    setTimeout(() => setTasks(p => p.filter(t => t.id !== tid)), 16000);
-                    
-                    resps.push({ 
-                      id: c.id, 
-                      name: toolName, 
-                      response: { 
-                        result, 
-                        downloadFilename: download.downloadFilename 
-                      } 
-                    });
-                  } catch (err: any) {
-                    const result = { 
-                      toolName, 
-                      args, 
-                      status: 'failed', 
-                      error: String(err?.message || err), 
-                      executedAt: new Date().toISOString() 
-                    };
-                    const download = makeDownloadFile(result, `${toolName}-error`);
-                    
-                    setTasks(p => p.map(t => t.id === tid ? { 
-                      ...t, 
-                      status: 'failed', 
-                      result: result.error, 
-                      ...download 
-                    } : t));
-                    
-                    saveMessage('model', `Tool failed from ${toolName}: ${result.error}`, { 
-                      toolName, 
-                      toolResult: result, 
-                      ...download 
-                    });
-                    
-                    resps.push({ id: c.id, name: toolName, response: result });
+                const calls = msg.toolCall.functionCalls;
+                pendingToolCallsRef.current = calls;
+                const actionNames = calls.map(c => c.name).join(', ');
+
+                setTasks(p =>[...p, {
+                  id: 'pending',
+                  serviceName: 'Action Confirmation',
+                  action: `Waiting for permission to run: ${actionNames}`,
+                  status: 'processing'
+                }]);
+
+                const resps = calls.map(c => ({
+                  id: c.id,
+                  name: c.name,
+                  response: {
+                    status: "PENDING_CONFIRMATION",
+                    instruction: "Do not execute yet. Tell the user what tool/action you want to perform and strictly ask for their confirmation (Yes/No) before it is executed."
                   }
-                }
-                
-                if (resps.length > 0 && sessionRef.current && typeof sessionRef.current.sendToolResponse === 'function') {
+                }));
+
+                if (sessionRef.current && typeof sessionRef.current.sendToolResponse === 'function') {
                   sessionRef.current.sendToolResponse({ functionResponses: resps });
                 }
             }
@@ -2796,8 +2772,13 @@ function BeatriceAgent({
               }
               
               if (serverContent.inputTranscription?.text) { 
-                userTranscriptBufferRef.current = serverContent.inputTranscription.text.trim(); 
+                const text = serverContent.inputTranscription.text;
+                userTranscriptBufferRef.current = text.trim(); 
                 updateLiveTranscript('user', userTranscriptBufferRef.current, 3200); 
+
+                if (pendingToolCallsRef.current && pendingToolCallsRef.current.length > 0) {
+                   checkConfirmation(text);
+                }
               }
               
               if (serverContent.outputTranscription?.text) { 
@@ -2835,49 +2816,6 @@ function BeatriceAgent({
 
       sessionRef.current = session;
 
-      try {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRecognition && !recognitionRef.current) {
-          recognitionRef.current = new SpeechRecognition();
-          recognitionRef.current.continuous = true;
-          recognitionRef.current.interimResults = true;
-          
-          recognitionRef.current.onresult = (event: any) => {
-            let interimText = ''; 
-            let finalText = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-              if (event.results[i].isFinal) {
-                finalText += event.results[i][0].transcript;
-              } else {
-                interimText += event.results[i][0].transcript;
-              }
-            }
-            
-            const visibleText = (finalText || interimText).trim();
-            if (visibleText) { 
-              userTranscriptBufferRef.current = visibleText; 
-              updateLiveTranscript('user', visibleText, 3200); 
-            }
-            
-            if (finalText.trim()) { 
-              saveMessage('user', finalText.trim()); 
-              lastSavedUserTranscriptRef.current = finalText.trim(); 
-              userTranscriptBufferRef.current = ''; 
-            }
-          };
-          
-          recognitionRef.current.onend = () => { 
-            if (sessionRef.current && isActiveRef.current) { 
-              try { 
-                recognitionRef.current?.start(); 
-              } catch (e) {} 
-            } 
-          };
-          
-          recognitionRef.current.start();
-        }
-      } catch (e) {}
-
       audioRecorderRef.current = new AudioRecorder((base64) => { 
         if (isMutedRef.current) return; 
         sendAudioToLive(base64); 
@@ -2891,7 +2829,7 @@ function BeatriceAgent({
       startMicVisualizer();
       
       setTimeout(() => { 
-        sendTextToLive(`${settings.userName} is here in the office. Start like ${settings.agentName} is already sitting at the desk nearby as the office employee. Begin in English normally and respectfully.`); 
+        sendTextToLive(`${settings.userName} is here in the office. Start like ${settings.agentName} is already sitting at the desk nearby as the office employee. Begin in ${settings.selectedLanguage} normally and respectfully.`); 
       }, 500);
       
     } catch (err) { 
@@ -3127,6 +3065,7 @@ function BeatriceAgent({
     modelTranscriptBufferRef.current = ''; 
     userTranscriptBufferRef.current = ''; 
     isActiveRef.current = false;
+    pendingToolCallsRef.current = null;
     
     setIsVideoEnabled(false); 
     setIsActive(false); 
@@ -3762,6 +3701,19 @@ Tasks:
                   >
                     {GEMINI_LIVE_VOICE_OPTIONS.map(v => ( 
                       <option key={v.id} value={v.id}>{v.alias} — {v.vibe}</option> 
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Speaking Language</label>
+                  <select 
+                    value={settings.selectedLanguage} 
+                    onChange={(e) => setSettings(s => ({ ...s, selectedLanguage: e.target.value }))} 
+                    className="w-full rounded-xl border border-white/10 bg-[#0A0A0B] p-4 text-sm text-white outline-none transition-all focus:border-lime-300/50 focus:ring-1 focus:ring-lime-300/50"
+                  >
+                    {SUPPORTED_LANGUAGES.map(lang => ( 
+                      <option key={lang} value={lang}>{lang}</option> 
                     ))}
                   </select>
                 </div>
